@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>World Capitals 🌍</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#1a0e00;color:#fff;min-height:100vh}
+  .wrap{max-width:680px;margin:0 auto;padding:20px 16px 60px}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);padding:6px 14px;border-radius:99px;transition:background .15s}
+  .back:hover{background:rgba(251,191,36,.22)}
+  .page-title{font-size:22px;font-weight:900;color:#fff}
+  .page-title span{color:#fbbf24}
+
+  /* Continent filter */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+  .filter-btn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#94a3b8;transition:all .15s}
+  .filter-btn.active{background:#fbbf24;border-color:#fbbf24;color:#422006}
+  .filter-btn:hover:not(.active){background:rgba(255,255,255,.1)}
+
+  /* Score row */
+  .score-bar{display:flex;gap:12px;justify-content:center;margin-bottom:22px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 18px;min-width:75px}
+  .stat .sv{font-size:24px;font-weight:900;color:#fbbf24}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Progress */
+  .prog{display:flex;gap:5px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#34d399}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* Country card */
+  .country-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:24px;text-align:center;margin-bottom:20px}
+  .flag{font-size:72px;line-height:1;margin-bottom:10px;display:block}
+  .country-name{font-size:28px;font-weight:900;color:#fff;margin-bottom:4px}
+  .continent-tag{font-size:12px;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.12);padding:3px 12px;border-radius:99px;display:inline-block}
+  .q-text{font-size:17px;color:#94a3b8;margin-top:14px;font-weight:700}
+
+  /* Options */
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+  .opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:16px 12px;font-size:16px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:center;font-family:'Nunito',sans-serif}
+  .opt:hover:not(:disabled){background:rgba(251,191,36,.15);border-color:#fbbf24}
+  .opt.correct{background:rgba(52,211,153,.15);border-color:#34d399;color:#6ee7b7}
+  .opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .opt:disabled{cursor:default}
+
+  .feedback{text-align:center;font-size:16px;font-weight:700;min-height:26px;margin-bottom:10px}
+  .feedback.good{color:#34d399}
+  .feedback.bad{color:#f87171}
+
+  /* Fact reveal */
+  .fact-reveal{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:14px 16px;font-size:14px;color:#fde68a;line-height:1.6;margin-bottom:14px;display:none;animation:fadein .3s ease}
+  .fact-reveal.show{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .fact-reveal strong{color:#fbbf24}
+
+  .next-btn{display:none;margin:0 auto;padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#fbbf24;color:#422006;border:none;border-radius:99px;cursor:pointer;transition:background .15s}
+  .next-btn:hover{background:#f59e0b}
+
+  /* End screen */
+  .end-screen{display:none;text-align:center;padding:32px 0}
+  .end-screen h2{font-size:28px;font-weight:900;margin-bottom:8px}
+  .end-big{font-size:68px;font-weight:900;color:#fbbf24;line-height:1;margin:12px 0}
+  .restart-btn{padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#fbbf24;color:#422006;border:none;border-radius:99px;cursor:pointer;margin-top:16px}
+  .restart-btn:hover{background:#f59e0b}
+
+  @media(max-width:420px){.options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🌍 <span>World Capitals</span></div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setContinent('All',this)">🌎 All</button>
+    <button class="filter-btn" onclick="setContinent('Europe',this)">🏰 Europe</button>
+    <button class="filter-btn" onclick="setContinent('Asia',this)">🏯 Asia</button>
+    <button class="filter-btn" onclick="setContinent('Africa',this)">🦁 Africa</button>
+    <button class="filter-btn" onclick="setContinent('Americas',this)">🌵 Americas</button>
+    <button class="filter-btn" onclick="setContinent('Oceania',this)">🦘 Oceania</button>
+  </div>
+
+  <div class="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/10</div><div class="sl">Round</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <div class="prog" id="prog"></div>
+
+  <div class="country-card" id="country-card">
+    <span class="flag" id="flag">🇬🇧</span>
+    <div class="country-name" id="country-name">United Kingdom</div>
+    <span class="continent-tag" id="continent-tag">Europe</span>
+    <div class="q-text">What is the capital city?</div>
+  </div>
+
+  <div class="options" id="options"></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="fact-reveal" id="fact-reveal"></div>
+  <button class="next-btn" id="next-btn" onclick="nextQ()">Next ➡</button>
+
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:56px">🌍</div>
+    <h2 id="end-title">Geography genius!</h2>
+    <div class="end-big" id="end-score">10</div>
+    <p style="color:#94a3b8" id="end-msg">out of 10</p>
+    <div id="end-stars" style="font-size:36px;margin:12px 0"></div>
+    <button class="restart-btn" onclick="startGame()">Play again ↺</button>
+  </div>
+</div>
+
+<script>
+const COUNTRIES=[
+  {name:'United Kingdom',capital:'London',flag:'🇬🇧',continent:'Europe',fact:'London is home to the famous Big Ben clock tower and the Tower Bridge over the River Thames.'},
+  {name:'France',capital:'Paris',flag:'🇫🇷',continent:'Europe',fact:'Paris has the Eiffel Tower — built in 1889, it was once the tallest structure in the world!'},
+  {name:'Germany',capital:'Berlin',flag:'🇩🇪',continent:'Europe',fact:'Berlin has more bridges than Venice — over 1,700 of them crossing the city\'s rivers and canals.'},
+  {name:'Italy',capital:'Rome',flag:'🇮🇹',continent:'Europe',fact:'Rome is called the "Eternal City" and is over 2,800 years old. It has more fountains than any other city in the world.'},
+  {name:'Spain',capital:'Madrid',flag:'🇪🇸',continent:'Europe',fact:'Madrid is the highest capital city in the European Union, sitting 667 metres above sea level.'},
+  {name:'Portugal',capital:'Lisbon',flag:'🇵🇹',continent:'Europe',fact:'Lisbon is one of the oldest cities in the world — even older than Rome! It was founded over 3,000 years ago.'},
+  {name:'Netherlands',capital:'Amsterdam',flag:'🇳🇱',continent:'Europe',fact:'Amsterdam has more bicycles than people — about 800,000 bikes in a city of 700,000 people!'},
+  {name:'Greece',capital:'Athens',flag:'🇬🇷',continent:'Europe',fact:'Athens is the birthplace of democracy, theatre, and the Olympic Games over 2,500 years ago.'},
+  {name:'Sweden',capital:'Stockholm',flag:'🇸🇪',continent:'Europe',fact:'Stockholm is built on 14 islands connected by 57 bridges — it\'s often called the "Venice of the North".'},
+  {name:'Norway',capital:'Oslo',flag:'🇳🇴',continent:'Europe',fact:'Norway has so much coastline that if straightened out, it would reach halfway around the Earth!'},
+  {name:'Japan',capital:'Tokyo',flag:'🇯🇵',continent:'Asia',fact:'Tokyo is the world\'s most populated city with over 37 million people living in its greater area.'},
+  {name:'China',capital:'Beijing',flag:'🇨🇳',continent:'Asia',fact:'Beijing is home to the Forbidden City — a palace with 9,999 rooms where emperors lived for 500 years.'},
+  {name:'India',capital:'New Delhi',flag:'🇮🇳',continent:'Asia',fact:'India is home to the Taj Mahal — built by Emperor Shah Jahan in memory of his wife, using 20,000 workers.'},
+  {name:'South Korea',capital:'Seoul',flag:'🇰🇷',continent:'Asia',fact:'Seoul has the world\'s fastest internet. It also has more than 25,000 coffee shops!'},
+  {name:'Thailand',capital:'Bangkok',flag:'🇹🇭',continent:'Asia',fact:'Bangkok\'s full ceremonial name is one of the longest city names in the world — 169 letters long!'},
+  {name:'United Arab Emirates',capital:'Abu Dhabi',flag:'🇦🇪',continent:'Asia',fact:'Abu Dhabi sits on an island and is home to the world\'s largest hand-loomed carpet in the Sheikh Zayed Mosque.'},
+  {name:'Saudi Arabia',capital:'Riyadh',flag:'🇸🇦',continent:'Asia',fact:'Riyadh means "gardens" in Arabic — the city was built around date palm oases in the desert.'},
+  {name:'Turkey',capital:'Ankara',flag:'🇹🇷',continent:'Asia',fact:'Turkey is the world\'s largest producer of hazelnuts, cherries, and figs — and makes amazing baklava!'},
+  {name:'Israel',capital:'Jerusalem',flag:'🇮🇱',continent:'Asia',fact:'Jerusalem is one of the oldest cities in the world, considered holy by three major religions.'},
+  {name:'Singapore',capital:'Singapore',flag:'🇸🇬',continent:'Asia',fact:'Singapore is one of only three city-states in the world. It\'s famous for being incredibly clean and green.'},
+  {name:'Egypt',capital:'Cairo',flag:'🇪🇬',continent:'Africa',fact:'Cairo sits next to the Great Pyramids of Giza — the only surviving wonder of the ancient world!'},
+  {name:'South Africa',capital:'Pretoria',flag:'🇿🇦',continent:'Africa',fact:'South Africa has three capitals! Pretoria (executive), Cape Town (legislative), and Bloemfontein (judicial).'},
+  {name:'Nigeria',capital:'Abuja',flag:'🇳🇬',continent:'Africa',fact:'Nigeria is home to Nollywood — the world\'s second largest film industry after Bollywood in India.'},
+  {name:'Kenya',capital:'Nairobi',flag:'🇰🇪',continent:'Africa',fact:'Nairobi has the only national park within a major city\'s limits — you can see lions with skyscrapers behind them!'},
+  {name:'Morocco',capital:'Rabat',flag:'🇲🇦',continent:'Africa',fact:'Morocco\'s city of Fes has the world\'s oldest university — the University of al-Qarawiyyin, founded in 859 AD.'},
+  {name:'Ethiopia',capital:'Addis Ababa',flag:'🇪🇹',continent:'Africa',fact:'Ethiopia is one of the oldest countries in the world and the only African country never colonised by Europeans.'},
+  {name:'Ghana',capital:'Accra',flag:'🇬🇭',continent:'Africa',fact:'Ghana was the first sub-Saharan African country to gain independence from colonial rule in 1957.'},
+  {name:'USA',capital:'Washington D.C.',flag:'🇺🇸',continent:'Americas',fact:'Washington D.C. was specially built to be the capital. All the Smithsonian museums there are completely free!'},
+  {name:'Canada',capital:'Ottawa',flag:'🇨🇦',continent:'Americas',fact:'Canada has the world\'s longest coastline — if you walked it, it would take about 4.5 years non-stop!'},
+  {name:'Brazil',capital:'Brasília',flag:'🇧🇷',continent:'Americas',fact:'Brasília was built from scratch in just 3 years and became the capital in 1960. From the air it looks like a bird!'},
+  {name:'Argentina',capital:'Buenos Aires',flag:'🇦🇷',continent:'Americas',fact:'Buenos Aires means "fair winds" in Spanish. It has one of the widest avenues in the world — 20 lanes wide!'},
+  {name:'Mexico',capital:'Mexico City',flag:'🇲🇽',continent:'Americas',fact:'Mexico City was built on top of an ancient Aztec city called Tenochtitlán, which sat in the middle of a lake.'},
+  {name:'Peru',capital:'Lima',flag:'🇵🇪',continent:'Americas',fact:'Peru is home to Machu Picchu — a famous Inca city built high in the Andes mountains 600 years ago.'},
+  {name:'Colombia',capital:'Bogotá',flag:'🇨🇴',continent:'Americas',fact:'Bogotá sits 2,640 metres above sea level — that\'s higher than most places in the Alps!'},
+  {name:'Chile',capital:'Santiago',flag:'🇨🇱',continent:'Americas',fact:'Chile is the world\'s longest country — stretching 4,300 km from north to south but only 177 km wide on average.'},
+  {name:'Australia',capital:'Canberra',flag:'🇦🇺',continent:'Oceania',fact:'Canberra was purpose-built as a compromise between rival cities Sydney and Melbourne. It has a lake in the middle!'},
+  {name:'New Zealand',capital:'Wellington',flag:'🇳🇿',continent:'Oceania',fact:'Wellington is the world\'s southernmost capital city. New Zealand was the first country to give women the right to vote in 1893.'},
+  {name:'Fiji',capital:'Suva',flag:'🇫🇯',continent:'Oceania',fact:'Fiji is made up of 333 islands — but only about 110 of them are inhabited!'},
+  {name:'Papua New Guinea',capital:'Port Moresby',flag:'🇵🇬',continent:'Oceania',fact:'Papua New Guinea has more languages than any other country — over 800 different ones are spoken there!'},
+];
+
+let continent='All',filtered=[],qList=[],qIdx=0,score=0,best=0,answered=false;
+const TOTAL=10;
+
+function setContinent(c,el){
+  continent=c;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  startGame();
+}
+
+function startGame(){
+  score=0;qIdx=0;answered=false;
+  try{const b=localStorage.getItem('geo_best');if(b)best=parseInt(b);}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('country-card').style.display='block';
+  document.getElementById('options').style.display='grid';
+  filtered=continent==='All'?COUNTRIES:COUNTRIES.filter(c=>c.continent===continent);
+  if(filtered.length<4)filtered=COUNTRIES;
+  qList=[...filtered].sort(()=>Math.random()-.5).slice(0,TOTAL);
+  buildDots();loadQ();
+}
+
+function buildDots(){
+  const p=document.getElementById('prog');p.innerHTML='';
+  for(let i=0;i<Math.min(TOTAL,qList.length);i++){
+    const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);
+  }
+}
+
+function loadQ(){
+  answered=false;
+  const c=qList[qIdx];
+  document.getElementById('flag').textContent=c.flag;
+  document.getElementById('country-name').textContent=c.name;
+  document.getElementById('continent-tag').textContent=c.continent;
+  document.getElementById('s-round').textContent=(qIdx+1)+'/'+qList.length;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('fact-reveal').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('dot-'+qIdx).className='prog-dot cur';
+
+  // Build 4 options
+  const wrongs=[...COUNTRIES].filter(x=>x.capital!==c.capital).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.capital);
+  const opts=[c.capital,...wrongs].sort(()=>Math.random()-.5);
+  const el=document.getElementById('options');
+  el.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt';b.textContent=o;
+    b.onclick=()=>pick(o,b,c);
+    el.appendChild(b);
+  });
+}
+
+function pick(val,btn,c){
+  if(answered)return;
+  answered=true;
+  const ok=val===c.capital;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===c.capital)b.classList.add('correct');});
+  const fb=document.getElementById('feedback');
+  if(ok){
+    score++;
+    const msgs=['Brilliant! 🌍','Correct! 🎉','You\'re a geography whiz! 🧭','Perfect! ⭐','Amazing! 🌎'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+qIdx).className='prog-dot good';
+  } else {
+    fb.textContent=`The capital of ${c.name} is ${c.capital} 🗺️`;
+    fb.className='feedback bad';
+    document.getElementById('dot-'+qIdx).className='prog-dot bad';
+  }
+  document.getElementById('s-score').textContent=score;
+
+  // Show fact
+  const fr=document.getElementById('fact-reveal');
+  fr.innerHTML=`<strong>📍 Did you know?</strong> ${c.fact}`;
+  fr.classList.add('show');
+
+  document.getElementById('next-btn').style.display='block';
+}
+
+function nextQ(){
+  qIdx++;
+  if(qIdx>=qList.length){showEnd();return;}
+  loadQ();
+}
+
+function showEnd(){
+  document.getElementById('country-card').style.display='none';
+  document.getElementById('options').style.display='none';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('fact-reveal').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  if(score>best){best=score;try{localStorage.setItem('geo_best',best);}catch(e){}}
+  document.getElementById('s-best').textContent=best;
+  const pct=score/qList.length;
+  document.getElementById('end-title').textContent=pct>=0.9?'Geography genius! 🌍':pct>=0.6?'Great explorer! 🗺️':'Keep exploring! 🧭';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`You scored ${score} out of ${qList.length}`;
+  document.getElementById('end-stars').textContent=pct>=0.9?'⭐⭐⭐':pct>=0.6?'⭐⭐':'⭐';
+  document.getElementById('end-screen').style.display='block';
+}
+
+startGame();
+</script>
+</body>
+</html>
