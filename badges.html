@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Badges 🏅</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#0f0a1e;color:#fff;min-height:100vh}
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .star{position:absolute;border-radius:50%;background:#fff;animation:tw var(--d,3s) ease-in-out infinite var(--dl,0s)}
+  @keyframes tw{0%,100%{opacity:.1}50%{opacity:.8}}
+  .wrap{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#818cf8;background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.25);padding:6px 14px;border-radius:99px}
+  .back:hover{background:rgba(129,140,248,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#818cf8}
+
+  /* Progress ring */
+  .progress-section{text-align:center;margin-bottom:32px}
+  .ring-wrap{position:relative;width:140px;height:140px;margin:0 auto 14px}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:10}
+  .ring-fill{fill:none;stroke:#818cf8;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-pct{font-size:28px;font-weight:900;color:#fff}
+  .ring-lbl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.07em}
+  .progress-sub{font-size:15px;color:#94a3b8}
+  .progress-sub strong{color:#a5b4fc}
+
+  /* Category sections */
+  .section{margin-bottom:28px}
+  .section-title{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
+
+  /* Badge grid */
+  .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:14px}
+  .badge-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 8px;text-align:center;transition:transform .18s,border-color .18s;cursor:default}
+  .badge-item.earned{border-color:rgba(129,140,248,.35);background:rgba(129,140,248,.08)}
+  .badge-item.earned:hover{transform:translateY(-4px);border-color:#818cf8}
+  .badge-icon{font-size:36px;line-height:1;margin-bottom:6px;transition:filter .3s}
+  .badge-item:not(.earned) .badge-icon{filter:grayscale(1);opacity:.3}
+  .badge-name{font-size:11px;font-weight:900;color:#e2e8f0;margin-bottom:3px;line-height:1.3}
+  .badge-item:not(.earned) .badge-name{color:#475569}
+  .badge-desc{font-size:10px;color:#64748b;line-height:1.4}
+  .badge-item.earned .badge-desc{color:#818cf8}
+  .badge-new{display:inline-block;background:#fbbf24;color:#422006;font-size:9px;font-weight:900;padding:2px 6px;border-radius:99px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Recent activity */
+  .activity-strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:28px}
+  .activity-chip{flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:8px}
+  .activity-chip .ac-icon{font-size:20px}
+  .activity-chip .ac-text{font-size:12px;color:#94a3b8;font-weight:700}
+  .activity-chip .ac-val{font-size:15px;font-weight:900;color:#fff}
+
+  /* Empty state */
+  .empty{text-align:center;padding:40px 20px;color:#475569}
+  .empty-icon{font-size:48px;margin-bottom:12px}
+  .empty p{font-size:14px;line-height:1.6}
+
+  /* Reset */
+  .reset-btn{display:block;margin:32px auto 0;padding:8px 24px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:99px;color:#f87171;cursor:pointer;transition:background .15s}
+  .reset-btn:hover{background:rgba(248,113,113,.18)}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🏅 <span>My Badges</span></div>
+  </div>
+
+  <!-- Progress ring -->
+  <div class="progress-section">
+    <div class="ring-wrap">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle class="ring-bg" cx="70" cy="70" r="60"/>
+        <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="60"
+          stroke-dasharray="377" stroke-dashoffset="377"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct" id="ring-pct">0%</div>
+        <div class="ring-lbl">earned</div>
+      </div>
+    </div>
+    <div class="progress-sub" id="progress-sub">You've earned <strong>0</strong> of <strong>0</strong> badges</div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="activity-strip" id="stats-strip"></div>
+
+  <!-- Badge sections by category -->
+  <div id="badge-sections"></div>
+
+  <button class="reset-btn" onclick="confirmReset()">🗑 Reset all progress</button>
+
+</div>
+<script src="badges.js"></script>
+<script>
+// Stars
+const sEl=document.getElementById('stars');
+for(let i=0;i<80;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+.5;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(2+Math.random()*3).toFixed(1)}s;--dl:${(Math.random()*4).toFixed(1)}s`;sEl.appendChild(s);}
+
+KLZ.checkTime();
+
+const earned = KLZ.getEarned();
+const total = KLZ_BADGES.length;
+const pct = Math.round(earned.length / total * 100);
+const circumference = 377;
+const offset = circumference - (pct/100)*circumference;
+
+document.getElementById('ring-pct').textContent = pct+'%';
+document.getElementById('progress-sub').innerHTML = `You've earned <strong style="color:#a5b4fc">${earned.length}</strong> of <strong style="color:#a5b4fc">${total}</strong> badges`;
+setTimeout(()=>{ document.getElementById('ring-fill').style.strokeDashoffset = offset; }, 100);
+
+// Stats strip
+const stats = KLZ.getStats();
+const statItems = [
+  {icon:'🎮', label:'Games played', key:'games_played'},
+  {icon:'✅', label:'Correct answers', key:'correct_total'},
+  {icon:'🏅', label:'Badges earned', val:earned.length},
+  {icon:'🔥', label:'Best streak', key:'best_streak'},
+];
+const strip = document.getElementById('stats-strip');
+statItems.forEach(s=>{
+  const val = s.val !== undefined ? s.val : (stats[s.key]||0);
+  if(val===0 && s.key) return;
+  const chip = document.createElement('div');
+  chip.className='activity-chip';
+  chip.innerHTML=`<div class="ac-icon">${s.icon}</div><div><div class="ac-val">${val}</div><div class="ac-text">${s.label}</div></div>`;
+  strip.appendChild(chip);
+});
+if(!strip.children.length){
+  strip.innerHTML='<div style="color:#475569;font-size:13px;padding:10px">Play some games to see your stats here!</div>';
+}
+
+// Render badge sections
+const CATEGORIES = [
+  {title:'🌟 Getting started', ids:['first_game','first_perfect','all_subjects','collector5','collector_all']},
+  {title:'🔢 Maths',           ids:['maths_streak5','maths_all','maths_hard']},
+  {title:'🪐 Science & Space', ids:['space_ace','science_all']},
+  {title:'🌍 Geography',       ids:['geo_globe','geo_continents']},
+  {title:'🏛️ History',         ids:['hist_clue1','hist_all_eras']},
+  {title:'🔤 English',         ids:['eng_spell10','eng_hard']},
+  {title:'🥦 Healthy food',    ids:['food_perfect']},
+  {title:'🔒 Secret badges',   ids:['night_owl','early_bird']},
+];
+
+// Track recently earned (last session - stored as flag)
+const recentKey = 'klz_recent_session';
+let recentSession = [];
+try{ recentSession = JSON.parse(localStorage.getItem(recentKey)||'[]'); }catch(e){}
+// Mark this as seen
+setTimeout(()=>{ try{localStorage.setItem(recentKey,'[]');}catch(e){} }, 2000);
+
+const secEl = document.getElementById('badge-sections');
+CATEGORIES.forEach(cat=>{
+  const badges = KLZ_BADGES.filter(b=>cat.ids.includes(b.id));
+  if(!badges.length) return;
+  const sec = document.createElement('div');
+  sec.className='section';
+  sec.innerHTML=`<div class="section-title">${cat.title}</div>`;
+  const grid = document.createElement('div');
+  grid.className='badge-grid';
+  badges.forEach(b=>{
+    const got = earned.includes(b.id);
+    const isNew = recentSession.includes(b.id);
+    const item = document.createElement('div');
+    item.className='badge-item'+(got?' earned':'');
+    item.title = got ? b.desc : (b.secret?'Keep playing to discover this!':b.desc);
+    item.innerHTML=`
+      ${isNew?'<div class="badge-new">New!</div>':''}
+      <div class="badge-icon">${got?b.icon:(b.secret?'🔒':b.icon)}</div>
+      <div class="badge-name">${got?b.name:(b.secret?'???':b.name)}</div>
+      <div class="badge-desc">${got?b.desc:(b.secret?'Keep playing to unlock':'Complete the challenge to earn this')}</div>`;
+    grid.appendChild(item);
+  });
+  sec.appendChild(grid);
+  secEl.appendChild(sec);
+});
+
+function confirmReset(){
+  if(confirm('Reset ALL progress, badges and scores? This cannot be undone.')){
+    try{
+      Object.keys(localStorage).filter(k=>k.startsWith('klz_')||k.startsWith('maths_')||k.startsWith('geo_')||k.startsWith('hfg_')||k.startsWith('space_')||k.startsWith('history_')||k.startsWith('english_')).forEach(k=>localStorage.removeItem(k));
+    }catch(e){}
+    location.reload();
+  }
+}
+</script>
+</body>
+</html>
