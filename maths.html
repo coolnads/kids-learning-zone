@@ -62,7 +62,7 @@
   .feedback.good{color:#34d399}
   .feedback.bad{color:#f87171}
 
-  .next-btn{display:none;margin:0 auto 0;padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#34d399;color:#022c22;border:none;border-radius:99px;cursor:pointer;display:none}
+  .next-btn{margin:0 auto;padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#34d399;color:#022c22;border:none;border-radius:99px;cursor:pointer}
   .next-btn:hover{background:#10b981}
 
   /* Progress dots */
@@ -234,6 +234,8 @@ function loadQ(){
     document.getElementById('mc-opts').style.display='none';
     const inp=document.getElementById('ans-input');
     inp.value='';
+    inp.disabled=false;
+    inp.style.borderColor='';
     setTimeout(()=>inp.focus(),100);
   }
 }
