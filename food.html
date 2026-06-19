@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Healthy Food Game 🥦</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e8f5e9 0%, #f3e5f5 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+    .topbar{display:flex;align-items:center;gap:12px;width:100%;max-width:500px;margin-bottom:16px}
+    .back{text-decoration:none;font-size:13px;font-weight:700;color:#2e7d32;background:rgba(46,125,50,.1);border:1px solid rgba(46,125,50,.25);padding:6px 14px;border-radius:99px}
+    .back:hover{background:rgba(46,125,50,.18)}
+    #app {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      width: 100%;
+      max-width: 500px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    h1 { font-size: 28px; font-weight: 700; color: #2e7d32; margin-bottom: 4px; }
+    .subtitle { font-size: 15px; color: #757575; margin-bottom: 24px; }
+    #scorebar { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; }
+    .stat { background: #f5f5f5; border-radius: 12px; padding: 10px 20px; min-width: 80px; }
+    .stat-label { font-size: 11px; color: #9e9e9e; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #212121; }
+    #prompt { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 24px; min-height: 32px; }
+    #cards { display: flex; gap: 20px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .card { width: 170px; background: #fafafa; border: 2px solid #e0e0e0; border-radius: 20px; padding: 24px 16px 20px; cursor: pointer; transition: transform 0.18s ease, border-color 0.18s, box-shadow 0.18s; display: flex; flex-direction: column; align-items: center; gap: 12px; user-select: none; }
+    .card:hover { transform: translateY(-6px); border-color: #9c27b0; box-shadow: 0 8px 24px rgba(156,39,176,0.15); }
+    .card .emoji { font-size: 72px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
+    .card .name { font-size: 16px; font-weight: 600; color: #333; }
+    .card.correct { border-color: #2e7d32; background: #e8f5e9; transform: scale(1.06); box-shadow: 0 8px 24px rgba(46,125,50,0.2); }
+    .card.wrong { border-color: #c62828; background: #ffebee; transform: scale(0.95); opacity: 0.8; }
+    .card.correct .name { color: #1b5e20; }
+    .card.wrong .name { color: #b71c1c; }
+    #feedback { font-size: 18px; font-weight: 600; min-height: 28px; margin-bottom: 12px; }
+    #feedback.good { color: #2e7d32; }
+    #feedback.bad  { color: #c62828; }
+    #progress-wrap { background: #f0f0f0; border-radius: 99px; height: 6px; margin-bottom: 24px; overflow: hidden; }
+    #progress-bar { height: 6px; border-radius: 99px; background: linear-gradient(90deg, #7b1fa2, #e91e63); transition: width 0.4s ease; width: 0%; }
+    #next-btn { display: none; margin: 0 auto; padding: 12px 36px; font-size: 16px; font-weight: 600; background: #7b1fa2; color: #fff; border: none; border-radius: 50px; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+    #next-btn:hover { background: #6a1b9a; transform: scale(1.03); }
+    #level-badge { display: inline-block; margin-top: 16px; font-size: 12px; padding: 4px 14px; border-radius: 99px; background: #e3f2fd; color: #1565c0; font-weight: 600; }
+    #endscreen { display: none; }
+    #endscreen h2 { font-size: 26px; font-weight: 700; color: #2e7d32; margin-bottom: 8px; }
+    #endscreen .score-big { font-size: 64px; font-weight: 800; color: #7b1fa2; line-height: 1; margin: 16px 0; }
+    #endscreen p { font-size: 16px; color: #757575; margin-bottom: 8px; }
+    #stars { font-size: 40px; margin: 12px 0 20px; letter-spacing: 4px; }
+    #restart-btn { padding: 14px 40px; font-size: 17px; font-weight: 700; background: #2e7d32; color: #fff; border: none; border-radius: 50px; cursor: pointer; }
+    #restart-btn:hover { background: #1b5e20; }
+    .trophy { font-size: 56px; margin-bottom: 8px; }
+    #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    @media (max-width: 420px) { .card { width: 140px; } .card .emoji { font-size: 56px; } }
+  </style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="topbar">
+  <a class="back" href="index.html">← Home</a>
+</div>
+<div id="app">
+  <div id="game">
+    <h1>Pick the Healthy One! 🌟</h1>
+    <p class="subtitle">Tap the fruit or vegetable to earn a point</p>
+    <div id="progress-wrap"><div id="progress-bar"></div></div>
+    <div id="scorebar">
+      <div class="stat"><div class="stat-label">Score</div><div class="stat-value" id="score">0</div></div>
+      <div class="stat"><div class="stat-label">Round</div><div class="stat-value" id="round">1/10</div></div>
+      <div class="stat"><div class="stat-label">Best</div><div class="stat-value" id="best">0</div></div>
+    </div>
+    <div id="prompt">Which one is healthy? 🤔</div>
+    <div id="cards">
+      <div class="card" id="card-0" onclick="pick(0)"><div class="emoji" id="emoji-0">🍎</div><div class="name" id="name-0">Apple</div></div>
+      <div class="card" id="card-1" onclick="pick(1)"><div class="emoji" id="emoji-1">🍕</div><div class="name" id="name-1">Pizza</div></div>
+    </div>
+    <div id="feedback"></div>
+    <button id="next-btn" onclick="nextRound()">Next round ➡</button>
+    <div id="level-badge">Level 1 — Easy</div>
+  </div>
+  <div id="endscreen">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="end-title">Amazing!</h2>
+    <div class="score-big" id="end-score">10</div>
+    <p>out of 10 points</p>
+    <div id="stars"></div>
+    <p id="end-msg">You're a health champion!</p>
+    <br/>
+    <button id="restart-btn" onclick="restartGame()">Play again ↺</button>
+  </div>
+</div>
+<script>
+const HEALTHY=[{emoji:'🍎',name:'Apple'},{emoji:'🍌',name:'Banana'},{emoji:'🥦',name:'Broccoli'},{emoji:'🥕',name:'Carrot'},{emoji:'🍓',name:'Strawberry'},{emoji:'🍊',name:'Orange'},{emoji:'🥝',name:'Kiwi'},{emoji:'🍇',name:'Grapes'},{emoji:'🥑',name:'Avocado'},{emoji:'🫐',name:'Blueberries'},{emoji:'🌽',name:'Corn'},{emoji:'🥬',name:'Lettuce'},{emoji:'🍉',name:'Watermelon'},{emoji:'🥭',name:'Mango'},{emoji:'🍑',name:'Peach'},{emoji:'🍒',name:'Cherries'},{emoji:'🍋',name:'Lemon'},{emoji:'🥔',name:'Potato'},{emoji:'🍆',name:'Aubergine'},{emoji:'🥒',name:'Cucumber'},{emoji:'🍅',name:'Tomato'},{emoji:'🌶',name:'Chilli'},{emoji:'🧅',name:'Onion'},{emoji:'🧄',name:'Garlic'},{emoji:'🥥',name:'Coconut'},{emoji:'🍐',name:'Pear'},{emoji:'🍈',name:'Melon'}];
+const JUNK=[{emoji:'🍔',name:'Burger'},{emoji:'🍕',name:'Pizza'},{emoji:'🍟',name:'Chips'},{emoji:'🌭',name:'Hot Dog'},{emoji:'🍦',name:'Ice Cream'},{emoji:'🍩',name:'Doughnut'},{emoji:'🍫',name:'Chocolate'},{emoji:'🧁',name:'Cupcake'},{emoji:'🍿',name:'Popcorn'},{emoji:'🥤',name:'Fizzy Drink'},{emoji:'🍪',name:'Cookie'},{emoji:'🥞',name:'Pancakes'},{emoji:'🧇',name:'Waffles'},{emoji:'🥓',name:'Bacon'},{emoji:'🌮',name:'Taco'},{emoji:'🥐',name:'Croissant'},{emoji:'🍰',name:'Cake'},{emoji:'🍭',name:'Lollipop'},{emoji:'🍬',name:'Sweets'},{emoji:'🌯',name:'Burrito'},{emoji:'🍣',name:'Sushi Roll'}];
+const TOTAL=10;
+let score=0,round=0,best=0,answered=false,healthyIdx=0,usedH=[],usedJ=[];
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+function loadRound(){
+  answered=false;
+  if(!usedH.length)usedH=shuffle(HEALTHY);if(!usedJ.length)usedJ=shuffle(JUNK);
+  const h=usedH.pop(),j=usedJ.pop();
+  healthyIdx=Math.random()<.5?0:1;
+  const items=healthyIdx===0?[h,j]:[j,h];
+  for(let i=0;i<2;i++){document.getElementById('emoji-'+i).textContent=items[i].emoji;document.getElementById('name-'+i).textContent=items[i].name;document.getElementById('card-'+i).className='card';}
+  document.getElementById('feedback').textContent='';document.getElementById('feedback').className='feedback';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('progress-bar').style.width=(round/TOTAL*100)+'%';
+  const lv=round<3?'Level 1 — Easy':round<7?'Level 2 — Medium':'Level 3 — Hard! 🔥';
+  document.getElementById('level-badge').textContent=lv;
+}
+function pick(idx){
+  if(answered)return;answered=true;
+  const ok=idx===healthyIdx;
+  document.getElementById('card-'+idx).classList.add(ok?'correct':'wrong');
+  if(!ok)document.getElementById('card-'+healthyIdx).classList.add('correct');
+  const fb=document.getElementById('feedback');
+  if(ok){score++;document.getElementById('score').textContent=score;const msgs=['Great job! 🎉','Brilliant! 🌟','Yay, healthy choice! 🥳','Super! 💪','Awesome! 🎊'];fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];fb.className='feedback good';}
+  else{const msgs=['Oops! Pick the fruit or veg! 🥦','Try the healthy one! 🍎','Not that one! 🥕 Try again!'];fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];fb.className='feedback bad';}
+  document.getElementById('next-btn').style.display='inline-block';
+}
+function nextRound(){round++;if(round>=TOTAL){showEnd();return;}loadRound();}
+function showEnd(){
+  document.getElementById('progress-bar').style.width='100%';
+  document.getElementById('game').style.display='none';document.getElementById('endscreen').style.display='block';
+  if(score>best){best=score;try{localStorage.setItem('hfg_best',best);}catch(e){}}
+  document.getElementById('best').textContent=best;document.getElementById('end-score').textContent=score;
+  const pct=score/TOTAL;
+  document.getElementById('stars').textContent=pct>=.9?'⭐⭐⭐':pct>=.6?'⭐⭐':'⭐';
+  document.getElementById('trophy').textContent=pct>=.9?'🏆':pct>=.6?'🥈':'🌱';
+  document.getElementById('end-title').textContent=pct>=.9?'Amazing champion! 🏆':pct>=.6?'Great effort! 💪':'Keep practising!';
+  document.getElementById('end-msg').textContent=pct>=.9?'You know your healthy foods!':pct>=.6?'You\'re getting really good!':'Every fruit and veggie counts! 🥕';
+  if(pct>=.8)launchConfetti();
+}
+function restartGame(){score=0;round=0;answered=false;usedH=[];usedJ=[];document.getElementById('score').textContent=0;document.getElementById('endscreen').style.display='none';document.getElementById('game').style.display='block';loadRound();}
+function launchConfetti(){
+  const canvas=document.getElementById('confetti'),ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const pieces=Array.from({length:120},()=>({x:Math.random()*canvas.width,y:-10,r:Math.random()*6+4,color:`hsl(${Math.random()*360},80%,60%)`,speed:Math.random()*3+2,drift:Math.random()*2-1,rot:Math.random()*360}));
+  let frame=0;
+  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);pieces.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.color;ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2);ctx.restore();p.y+=p.speed;p.x+=p.drift;p.rot+=3;});frame++;if(frame<120)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);}
+  draw();
+}
+try{const b=localStorage.getItem('hfg_best');if(b){best=parseInt(b)||0;document.getElementById('best').textContent=best;}}catch(e){}
+loadRound();
+</script>
+</body>
+</html>
