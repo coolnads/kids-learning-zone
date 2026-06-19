@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Science — How Things Work 🔬</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#001a2e;color:#fff;min-height:100vh}
+  .wrap{max-width:700px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#38bdf8;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);padding:6px 14px;border-radius:99px;transition:background .15s}
+  .back:hover{background:rgba(56,189,248,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#38bdf8}
+
+  /* Topic picker */
+  .topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px}
+  .topic-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:16px;cursor:pointer;transition:all .18s;text-align:center}
+  .topic-card:hover{transform:translateY(-3px)}
+  .topic-card.active{border-color:#38bdf8;background:rgba(56,189,248,.1)}
+  .topic-card .tc-icon{font-size:30px;margin-bottom:6px}
+  .topic-card .tc-label{font-size:13px;font-weight:900;color:#fff}
+
+  /* Step navigation */
+  .step-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .step-pill{font-size:11px;font-weight:700;padding:4px 12px;border-radius:99px;cursor:pointer;transition:all .15s;border:none;font-family:'Nunito',sans-serif}
+  .step-pill.done{background:rgba(56,189,248,.2);color:#38bdf8}
+  .step-pill.active{background:#38bdf8;color:#001a2e}
+  .step-pill.future{background:rgba(255,255,255,.07);color:#475569}
+
+  /* Main content card */
+  .content-card{background:rgba(255,255,255,.04);border:1px solid rgba(56,189,248,.15);border-radius:24px;overflow:hidden;margin-bottom:20px}
+
+  /* Visual panel */
+  .visual-panel{background:#001629;padding:0;position:relative}
+  .visual-panel canvas,.visual-panel svg{display:block;width:100%;height:240px}
+
+  /* Text panel */
+  .text-panel{padding:20px 22px}
+  .step-badge{font-size:11px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .step-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:8px}
+  .step-body{font-size:15px;color:#94a3b8;line-height:1.7}
+  .step-body strong{color:#e2e8f0}
+  .fact-box{background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);border-radius:12px;padding:12px 16px;margin-top:14px;font-size:14px;color:#bae6fd;line-height:1.6}
+  .fact-box span{font-size:16px;margin-right:6px}
+
+  /* Nav buttons */
+  .nav-row{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:28px}
+  .nav-btn{padding:11px 28px;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;border-radius:99px;cursor:pointer;transition:all .15s;border:none}
+  .nav-prev{background:rgba(255,255,255,.07);color:#94a3b8}
+  .nav-prev:hover{background:rgba(255,255,255,.12)}
+  .nav-prev:disabled{opacity:.3;cursor:default}
+  .nav-next{background:#38bdf8;color:#001a2e}
+  .nav-next:hover{background:#0ea5e9}
+  .nav-next:disabled{opacity:.3;cursor:default}
+
+  /* Quiz section */
+  .quiz-title{font-size:17px;font-weight:900;color:#fff;margin-bottom:14px;text-align:center}
+  .q-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .q-opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 10px;font-size:14px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:center;font-family:'Nunito',sans-serif}
+  .q-opt:hover:not(:disabled){background:rgba(56,189,248,.15);border-color:#38bdf8}
+  .q-opt.correct{background:rgba(52,211,153,.15);border-color:#34d399;color:#6ee7b7}
+  .q-opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .q-opt:disabled{cursor:default}
+  .q-feedback{text-align:center;font-size:15px;font-weight:700;min-height:24px;margin-bottom:10px}
+  .q-feedback.good{color:#34d399}
+  .q-feedback.bad{color:#f87171}
+  .score-chip{display:inline-block;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.2);border-radius:99px;padding:4px 14px;font-size:13px;font-weight:700;color:#38bdf8;margin-bottom:16px}
+
+  @media(max-width:440px){.q-opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🔬 <span>How Things Work</span></div>
+  </div>
+
+  <!-- Topic picker -->
+  <div class="topic-grid" id="topic-grid">
+    <div class="topic-card active" onclick="setTopic(0,this)"><div class="tc-icon">💧</div><div class="tc-label">Water Cycle</div></div>
+    <div class="topic-card" onclick="setTopic(1,this)"><div class="tc-icon">🌿</div><div class="tc-label">Food Chain</div></div>
+    <div class="topic-card" onclick="setTopic(2,this)"><div class="tc-icon">🫀</div><div class="tc-label">Human Body</div></div>
+    <div class="topic-card" onclick="setTopic(3,this)"><div class="tc-icon">⚡</div><div class="tc-label">Electricity</div></div>
+  </div>
+
+  <!-- Step bar -->
+  <div class="step-bar" id="step-bar"></div>
+
+  <!-- Content card -->
+  <div class="content-card">
+    <div class="visual-panel" id="visual-panel">
+      <canvas id="scene-canvas" height="240"></canvas>
+    </div>
+    <div class="text-panel">
+      <div class="step-badge" id="step-badge">Step 1 of 5</div>
+      <div class="step-title" id="step-title">Evaporation</div>
+      <div class="step-body" id="step-body">The sun heats water in oceans, rivers and lakes.</div>
+      <div class="fact-box" id="fact-box"><span>💡</span>Fun fact here</div>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="nav-btn nav-prev" id="nav-prev" onclick="stepNav(-1)">← Previous</button>
+    <button class="nav-btn nav-next" id="nav-next" onclick="stepNav(1)">Next →</button>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quiz-section">
+    <div style="text-align:center;margin-bottom:16px">
+      <div class="score-chip" id="quiz-score-chip">Quiz score: 0 / 0</div>
+    </div>
+    <div class="quiz-title" id="quiz-title">Quick check — test yourself!</div>
+    <div class="q-opts" id="q-opts"></div>
+    <div class="q-feedback" id="q-feedback"></div>
+  </div>
+</div>
+
+<script>
+const TOPICS = [
+  {
+    name:'Water Cycle',
+    steps:[
+      {title:'Evaporation',badge:'Step 1 — The sun heats water',
+       body:'The <strong>Sun</strong> heats water in oceans, rivers and lakes. The water turns into invisible water vapour and rises up into the sky. This is called <strong>evaporation</strong>.',
+       fact:'The ocean provides about 90% of the water vapour in our atmosphere. Every day, the Sun evaporates about 1 trillion tonnes of water!',
+       draw:'evaporation'},
+      {title:'Condensation',badge:'Step 2 — Water forms clouds',
+       body:'As water vapour rises high into the sky, it gets cooler. When it cools down enough, it turns back into tiny water droplets. These droplets cluster together to form <strong>clouds</strong>. This is called <strong>condensation</strong>.',
+       fact:'A single cloud can weigh more than 500,000 kg — that\'s heavier than a jumbo jet! Yet it floats because the droplets are so tiny.',
+       draw:'condensation'},
+      {title:'Precipitation',badge:'Step 3 — Water falls back down',
+       body:'When clouds collect lots of water droplets, the drops get too heavy to stay up. They fall back to Earth as <strong>rain, snow, sleet or hail</strong>. This is called <strong>precipitation</strong>.',
+       fact:'The largest raindrops ever measured were about 8mm across — roughly the size of a small blueberry. Most raindrops are much smaller, around 2mm.',
+       draw:'precipitation'},
+      {title:'Collection',badge:'Step 4 — Water gathers',
+       body:'Rain and melted snow flow into <strong>rivers, lakes and oceans</strong>. Some soaks into the ground and is stored underground as groundwater. Plants absorb some through their roots. This is called <strong>collection</strong>.',
+       fact:'About 97% of Earth\'s water is in the oceans. Of the 3% that\'s fresh water, most is locked in glaciers and ice caps — only 1% is easily available to drink!',
+       draw:'collection'},
+      {title:'The Full Cycle',badge:'Step 5 — It never stops!',
+       body:'The water cycle never stops — it has been running for <strong>billions of years</strong>. The water you drink today may have once been drunk by a dinosaur! Water on Earth is constantly moving: evaporating, condensing, falling, and collecting over and over.',
+       fact:'Earth has had roughly the same amount of water for 3.8 billion years. We don\'t get new water — we just keep recycling the same water over and over again.',
+       draw:'full'},
+    ],
+    quiz:[
+      {q:'What do we call it when water turns into vapour and rises?',a:'Evaporation',opts:['Condensation','Evaporation','Precipitation','Collection']},
+      {q:'What forms when water vapour cools down in the sky?',a:'Clouds',opts:['Rain','Ice','Clouds','Fog']},
+      {q:'What word describes rain, snow, sleet and hail?',a:'Precipitation',opts:['Evaporation','Collection','Condensation','Precipitation']},
+      {q:'About what percentage of Earth\'s water is in the oceans?',a:'97%',opts:['50%','75%','97%','100%']},
+    ]
+  },
+  {
+    name:'Food Chain',
+    steps:[
+      {title:'What is a food chain?',badge:'Introduction',
+       body:'A <strong>food chain</strong> shows how energy passes from one living thing to another through eating. Every animal needs energy to survive, and most get it by eating other living things.',
+       fact:'Energy is lost at each step of a food chain. That\'s why there are always more plants than herbivores, and more herbivores than carnivores.',
+       draw:'chain1'},
+      {title:'Producers',badge:'Level 1 — Plants',
+       body:'At the bottom of every food chain are <strong>producers</strong> — usually plants. Plants are special because they can make their own food using sunlight, water and carbon dioxide. This process is called <strong>photosynthesis</strong>.',
+       fact:'Plants produce oxygen as a waste product of photosynthesis. Every breath you take contains oxygen made by plants — including tiny plants in the ocean called phytoplankton!',
+       draw:'chain2'},
+      {title:'Primary Consumers',badge:'Level 2 — Plant eaters',
+       body:'Animals that eat plants are called <strong>herbivores</strong> or <strong>primary consumers</strong>. Examples include rabbits, caterpillars, cows and deer. They get their energy from eating the producers.',
+       fact:'Cows have four stomachs to help digest grass. They spend up to 8 hours a day eating and another 8 hours "chewing the cud" — re-chewing already swallowed grass!',
+       draw:'chain3'},
+      {title:'Secondary Consumers',badge:'Level 3 — Meat eaters',
+       body:'Animals that eat other animals are called <strong>carnivores</strong> or <strong>secondary consumers</strong>. A fox that eats a rabbit is a secondary consumer. Some animals eat both plants and animals — they are called <strong>omnivores</strong>.',
+       fact:'Humans are omnivores. So are bears, pigs, and crows. Being an omnivore means you can survive on many different food sources, which is very useful!',
+       draw:'chain4'},
+      {title:'Decomposers',badge:'The clean-up crew!',
+       body:'When animals and plants die, <strong>decomposers</strong> like fungi, worms and bacteria break them down. This returns nutrients to the soil, which helps plants grow — completing the cycle!',
+       fact:'A single teaspoon of healthy soil contains more microorganisms than there are people on Earth. These tiny decomposers are essential to all life on the planet.',
+       draw:'chain5'},
+    ],
+    quiz:[
+      {q:'What do we call animals that only eat plants?',a:'Herbivores',opts:['Carnivores','Omnivores','Herbivores','Decomposers']},
+      {q:'What is the process plants use to make food from sunlight?',a:'Photosynthesis',opts:['Respiration','Digestion','Photosynthesis','Evaporation']},
+      {q:'What do decomposers do?',a:'Break down dead things',opts:['Eat only plants','Hunt other animals','Break down dead things','Make their own food']},
+      {q:'What do we call animals that eat both plants and meat?',a:'Omnivores',opts:['Carnivores','Herbivores','Producers','Omnivores']},
+    ]
+  },
+  {
+    name:'Human Body',
+    steps:[
+      {title:'The Skeleton',badge:'Our body\'s framework',
+       body:'Your body has <strong>206 bones</strong> that form your skeleton. The skeleton gives your body its shape, protects your organs, and lets you move. Bones are living — they grow and repair themselves when broken!',
+       fact:'Babies are born with about 270 bones. Many fuse together as you grow, leaving adults with 206. The smallest bone is in your ear — the stirrup bone is only 3mm long!',
+       draw:'skeleton'},
+      {title:'The Heart',badge:'Your body\'s pump',
+       body:'Your <strong>heart</strong> is a muscle about the size of your fist. It pumps blood around your whole body through tubes called <strong>blood vessels</strong>. Your heart beats about 100,000 times every single day without stopping!',
+       fact:'If you stretched out all the blood vessels in your body end to end, they would go around the Earth more than twice — that\'s over 100,000 km!',
+       draw:'heart'},
+      {title:'The Lungs',badge:'Breathing in, breathing out',
+       body:'You have two <strong>lungs</strong> in your chest. When you breathe in, your lungs fill with air and take in <strong>oxygen</strong>. When you breathe out, your lungs release <strong>carbon dioxide</strong>. You breathe about 20,000 times every day.',
+       fact:'Your left lung is slightly smaller than your right lung to make room for your heart. Together, your lungs have a surface area about the size of a tennis court!',
+       draw:'lungs'},
+      {title:'The Brain',badge:'Your body\'s control centre',
+       body:'Your <strong>brain</strong> is the most complex organ in the known universe. It controls everything you do — thinking, feeling, moving, and even breathing and sleeping. It sends messages to every part of your body through your <strong>nervous system</strong>.',
+       fact:'Your brain generates enough electricity to power a small light bulb. It contains about 86 billion neurons (nerve cells), each connected to thousands of others!',
+       draw:'brain'},
+      {title:'The Digestive System',badge:'Processing your food',
+       body:'When you eat, your body <strong>digests</strong> the food to get energy and nutrients. It starts in your mouth with chewing, moves to your stomach where it\'s broken down, then your intestines absorb the goodness. The whole journey can take up to 2 days!',
+       fact:'Your small intestine is about 6–7 metres long — but it\'s coiled up inside you! The lining is covered in tiny fingers called villi that absorb nutrients into your blood.',
+       draw:'digestion'},
+    ],
+    quiz:[
+      {q:'How many bones does an adult human body have?',a:'206',opts:['186','206','256','300']},
+      {q:'How many times does your heart beat each day (roughly)?',a:'100,000',opts:['1,000','10,000','100,000','1,000,000']},
+      {q:'What gas do your lungs take in when you breathe?',a:'Oxygen',opts:['Carbon dioxide','Nitrogen','Oxygen','Hydrogen']},
+      {q:'About how long is your small intestine?',a:'6–7 metres',opts:['1 metre','3 metres','6–7 metres','20 metres']},
+    ]
+  },
+  {
+    name:'Electricity',
+    steps:[
+      {title:'What is electricity?',badge:'The basics',
+       body:'<strong>Electricity</strong> is a type of energy made by the movement of tiny particles called <strong>electrons</strong>. Electrons are so small you can\'t see them — billions fit on the head of a pin! When electrons flow together, they create an electric current.',
+       fact:'Lightning is electricity! A single bolt of lightning contains enough energy to toast 100,000 slices of bread. It can heat the air around it to 30,000°C — five times hotter than the surface of the Sun!',
+       draw:'elec1'},
+      {title:'Circuits',badge:'Giving electricity a path',
+       body:'Electricity needs a complete <strong>circuit</strong> — a loop — to flow. If there\'s a gap anywhere in the loop, electricity stops. A simple circuit has a <strong>battery</strong> (to push the electricity), <strong>wires</strong> (to carry it), and a <strong>component</strong> like a light bulb.',
+       fact:'A switch works by creating or removing a gap in a circuit. When a switch is "off", it breaks the circuit and stops electricity flowing. Simple but brilliant!',
+       draw:'elec2'},
+      {title:'Conductors & Insulators',badge:'What electricity flows through',
+       body:'Materials that let electricity flow through them easily are called <strong>conductors</strong> — most metals are good conductors. Materials that block electricity are called <strong>insulators</strong> — plastic, rubber, wood, and glass are insulators.',
+       fact:'Copper is the most common conductor used in wires because it\'s an excellent conductor and relatively cheap. Gold is an even better conductor but too expensive for everyday use!',
+       draw:'elec3'},
+      {title:'Series & Parallel Circuits',badge:'Two ways to connect things',
+       body:'In a <strong>series circuit</strong>, components are connected in one single loop. If one bulb breaks, they all go out! In a <strong>parallel circuit</strong>, each component has its own path. If one bulb breaks, the others stay on. Your home uses parallel circuits.',
+       fact:'Christmas tree lights used to be in series — if one bulb went, all of them went out! Modern LED fairy lights are in parallel, so one broken bulb doesn\'t ruin the whole string.',
+       draw:'elec4'},
+      {title:'How we use electricity',badge:'Electricity in daily life',
+       body:'Electricity powers almost everything in your life — lights, computers, phones, fridges, and TVs. It\'s generated in <strong>power stations</strong> using coal, gas, wind, solar panels, or water, then travels along cables to your home.',
+       fact:'The first public electricity supply in the world was switched on in 1882 in New York City, providing power to just 85 customers. Now electricity reaches over 90% of people on Earth.',
+       draw:'elec5'},
+    ],
+    quiz:[
+      {q:'What do we call a complete loop that electricity flows around?',a:'A circuit',opts:['A conductor','A circuit','An insulator','A battery']},
+      {q:'Which of these is a good conductor of electricity?',a:'Copper wire',opts:['Rubber glove','Copper wire','Plastic bottle','Wooden spoon']},
+      {q:'In which type of circuit do all lights go out when one breaks?',a:'Series circuit',opts:['Parallel circuit','Series circuit','Ring circuit','Loop circuit']},
+      {q:'What is lightning?',a:'Electricity in the sky',opts:['Hot steam','Sound waves','Electricity in the sky','Light from the Sun']},
+    ]
+  },
+];
+
+let topicIdx=0,stepIdx=0,quizIdx=0,quizScore=0,quizAnswered=false;
+const COLORS={sky:'#0c2461',cloud:'#b8d4f0',water:'#1e6fb0',sun:'#fbbf24',rain:'#64b5f6',grass:'#2d6a2d',plant:'#27ae60',rabbit:'#c4a882',fox:'#e67e22',decomp:'#8d6e63'};
+
+function setTopic(idx,el){
+  topicIdx=idx;stepIdx=0;quizIdx=0;quizScore=0;quizAnswered=false;
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  buildStepBar();render();loadQuiz();
+}
+
+function buildStepBar(){
+  const t=TOPICS[topicIdx];
+  const sb=document.getElementById('step-bar');
+  sb.innerHTML='';
+  t.steps.forEach((s,i)=>{
+    const p=document.createElement('button');
+    p.className='step-pill '+(i<stepIdx?'done':i===stepIdx?'active':'future');
+    p.textContent=(i+1)+'. '+s.title.split(' ')[0];
+    p.onclick=()=>{stepIdx=i;buildStepBar();render();};
+    sb.appendChild(p);
+  });
+}
+
+function stepNav(dir){
+  const t=TOPICS[topicIdx];
+  stepIdx=Math.max(0,Math.min(t.steps.length-1,stepIdx+dir));
+  buildStepBar();render();
+}
+
+function render(){
+  const t=TOPICS[topicIdx];
+  const s=t.steps[stepIdx];
+  document.getElementById('step-badge').textContent=s.badge;
+  document.getElementById('step-title').textContent=s.title;
+  document.getElementById('step-body').innerHTML=s.body;
+  document.getElementById('fact-box').innerHTML='<span>💡</span>'+s.fact;
+  document.getElementById('nav-prev').disabled=stepIdx===0;
+  document.getElementById('nav-next').disabled=stepIdx===t.steps.length-1;
+  drawScene(s.draw);
+}
+
+// ---- Canvas drawing ----
+function drawScene(scene){
+  const canvas=document.getElementById('scene-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||680;
+  canvas.height=240;
+  const W=canvas.width,H=240;
+  ctx.clearRect(0,0,W,H);
+
+  if(scene==='evaporation'||scene==='full'){
+    // Sky
+    ctx.fillStyle='#0c2461';ctx.fillRect(0,0,W,H);
+    // Ocean
+    ctx.fillStyle='#1e6fb0';ctx.fillRect(0,H*0.65,W,H*0.35);
+    // Sun
+    ctx.fillStyle='#fbbf24';ctx.beginPath();ctx.arc(W*0.82,40,30,0,Math.PI*2);ctx.fill();
+    // Rays
+    ctx.strokeStyle='#fbbf2488';ctx.lineWidth=2;
+    for(let a=0;a<360;a+=40){const r=a*Math.PI/180;ctx.beginPath();ctx.moveTo(W*0.82+38*Math.cos(r),40+38*Math.sin(r));ctx.lineTo(W*0.82+52*Math.cos(r),40+52*Math.sin(r));ctx.stroke();}
+    // Vapour arrows
+    ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=2;ctx.setLineDash([4,4]);
+    [[W*0.3,H*0.6],[W*0.5,H*0.55],[W*0.65,H*0.6]].forEach(([x,y])=>{
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-10,y-50);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x-10,y-50);ctx.lineTo(x-18,y-38);ctx.moveTo(x-10,y-50);ctx.lineTo(x-2,y-38);ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    txt(ctx,'Evaporation ↑',W*0.45,H*0.52,'rgba(255,255,255,0.7)',12);
+  }
+  if(scene==='condensation'||scene==='full'){
+    if(scene!=='full'){ctx.fillStyle='#0c2461';ctx.fillRect(0,0,W,H);ctx.fillStyle='#1e6fb0';ctx.fillRect(0,H*0.75,W,H*0.25);}
+    // Clouds
+    drawCloud(ctx,W*0.3,60,70);drawCloud(ctx,W*0.65,45,55);
+    txt(ctx,'Clouds form',W*0.3,100,'#b8d4f0',12);
+  }
+  if(scene==='precipitation'||scene==='full'){
+    if(scene!=='full'){ctx.fillStyle='#0c2461';ctx.fillRect(0,0,W,H);ctx.fillStyle='#1e6fb0';ctx.fillRect(0,H*0.75,W,H*0.25);drawCloud(ctx,W*0.45,50,80);}
+    // Rain drops
+    ctx.strokeStyle='#64b5f6';ctx.lineWidth=2;ctx.setLineDash([]);
+    const rainX=scene==='full'?[W*0.25,W*0.35,W*0.3,W*0.62,W*0.68]:[W*0.3,W*0.42,W*0.38,W*0.52,W*0.58];
+    rainX.forEach(x=>{for(let y=90;y<H-60;y+=28){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+12);ctx.stroke();}});
+    txt(ctx,'Rain ☔',scene==='full'?W*0.3:W*0.44,H*0.75,'#64b5f6',12);
+  }
+  if(scene==='collection'||scene==='full'){
+    if(scene!=='full'){ctx.fillStyle='#0c2461';ctx.fillRect(0,0,W,H);ctx.fillStyle='#2d6a2d';ctx.fillRect(0,H*0.7,W,H*0.3);}
+    // River
+    ctx.fillStyle='#1e6fb0';
+    ctx.beginPath();ctx.moveTo(0,H*0.78);ctx.quadraticCurveTo(W*0.4,H*0.72,W,H*0.8);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+    txt(ctx,'Rivers & lakes collect water',W*0.35,H*0.9,'rgba(255,255,255,0.7)',12);
+  }
+  if(scene==='full'){
+    // Labels
+    txt(ctx,'☀️ Sun',W*0.82,88,'#fbbf24',11);
+    txt(ctx,'The Water Cycle',W*0.5,H-10,'rgba(255,255,255,0.5)',11);
+  }
+  if(scene==='chain1'){
+    ctx.fillStyle='#0d2b0d';ctx.fillRect(0,0,W,H);
+    const chain=['🌿 Plant','🐛 Caterpillar','🐦 Bird','🦅 Eagle'];
+    const spacing=W/(chain.length+1);
+    chain.forEach((c,i)=>{
+      const x=spacing*(i+1);
+      ctx.fillStyle='rgba(255,255,255,.08)';roundRect(ctx,x-40,H/2-30,80,60,12);ctx.fill();
+      txt(ctx,c,x,H/2+5,'#e2e8f0',13);
+      if(i<chain.length-1){ctx.strokeStyle='#34d399';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+44,H/2);ctx.lineTo(x+spacing-44,H/2);ctx.stroke();arrowHead(ctx,x+spacing-44,H/2,'#34d399');}
+    });
+    txt(ctx,'Energy flows along the food chain →',W/2,H-16,'rgba(255,255,255,0.4)',11);
+  }
+  if(scene==='chain2'){
+    ctx.fillStyle='#0d2b0d';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#27ae60';ctx.fillRect(0,H*0.72,W,H*0.28);
+    // Sun
+    ctx.fillStyle='#fbbf24';ctx.beginPath();ctx.arc(W*0.5,44,28,0,Math.PI*2);ctx.fill();
+    txt(ctx,'☀️ Sunlight',W*0.5,88,'#fbbf24',13);
+    // Plant
+    drawPlant(ctx,W*0.5,H*0.72);
+    txt(ctx,'🌿 Producer (Plant)',W*0.5,H-12,'#6ee7b7',13);
+    // Arrow
+    ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(W*0.5,74);ctx.lineTo(W*0.5,H*0.55);ctx.stroke();ctx.setLineDash([]);
+  }
+  if(scene==='chain3'){
+    bgGrass(ctx,W,H);
+    drawPlant(ctx,W*0.25,H*0.7);
+    // Rabbit shape (simplified)
+    ctx.fillStyle='#c4a882';ctx.beginPath();ctx.ellipse(W*0.62,H*0.72,26,18,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(W*0.62,H*0.6,12,18,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(W*0.59,H*0.5,4,10,-0.3,0,Math.PI*2);ctx.fill();
+    txt(ctx,'🌿 Plant',W*0.25,H-14,'#6ee7b7',12);
+    ctx.strokeStyle='#34d399';ctx.lineWidth=2;arrow(ctx,W*0.32,H*0.68,W*0.52,H*0.68);
+    txt(ctx,'🐇 Herbivore',W*0.62,H-14,'#e2e8f0',12);
+  }
+  if(scene==='chain4'){
+    bgGrass(ctx,W,H);
+    // Rabbit
+    ctx.fillStyle='#c4a882';ctx.beginPath();ctx.ellipse(W*0.28,H*0.72,22,15,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(W*0.28,H*0.62,10,15,0,0,Math.PI*2);ctx.fill();
+    // Fox
+    ctx.fillStyle='#e67e22';ctx.beginPath();ctx.ellipse(W*0.7,H*0.7,30,18,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(W*0.7,H*0.58,14,18,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#c0522a';ctx.beginPath();ctx.moveTo(W*0.7-8,H*0.5);ctx.lineTo(W*0.7+8,H*0.5);ctx.lineTo(W*0.7,H*0.39);ctx.fill();
+    ctx.strokeStyle='#f87171';ctx.lineWidth=2;arrow(ctx,W*0.38,H*0.68,W*0.55,H*0.68);
+    txt(ctx,'🐇 Herbivore',W*0.28,H-14,'#e2e8f0',12);
+    txt(ctx,'🦊 Carnivore',W*0.7,H-14,'#fca5a5',12);
+  }
+  if(scene==='chain5'){
+    bgGrass(ctx,W,H);
+    // Leaf on ground
+    ctx.fillStyle='#7a5230';ctx.beginPath();ctx.ellipse(W*0.35,H*0.76,24,14,0.3,0,Math.PI*2);ctx.fill();
+    // Worms
+    ctx.strokeStyle='#8d6e63';ctx.lineWidth=6;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(W*0.45,H*0.8);ctx.bezierCurveTo(W*0.5,H*0.75,W*0.55,H*0.85,W*0.6,H*0.78);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(W*0.48,H*0.82);ctx.bezierCurveTo(W*0.53,H*0.77,W*0.58,H*0.86,W*0.63,H*0.79);ctx.stroke();
+    // Soil arrow
+    ctx.strokeStyle='#6ee7b7';ctx.lineWidth=2;arrow(ctx,W*0.65,H*0.76,W*0.75,H*0.6);
+    ctx.fillStyle='#27ae60';ctx.fillRect(W*0.73,H*0.42,8,H*0.2);
+    txt(ctx,'🍂 Dead matter',W*0.35,H*0.65,'#c4a882',12);
+    txt(ctx,'🪱 Decomposers',W*0.53,H-14,'#e2e8f0',12);
+    txt(ctx,'→ Nutrients back to soil',W*0.75,H*0.56,'#6ee7b7',10);
+  }
+  if(scene==='skeleton'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    // Simplified skeleton: head, spine, ribs, arms, legs
+    const cx=W/2,cy=30;
+    ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=2;ctx.lineCap='round';
+    // Head
+    ctx.beginPath();ctx.arc(cx,cy+14,18,0,Math.PI*2);ctx.stroke();
+    // Spine
+    ctx.beginPath();ctx.moveTo(cx,cy+32);ctx.lineTo(cx,cy+140);ctx.stroke();
+    // Ribs
+    for(let i=0;i<4;i++){const ry=cy+50+i*18;ctx.beginPath();ctx.moveTo(cx,ry);ctx.bezierCurveTo(cx-20,ry-8,cx-38,ry+4,cx-34,ry+14);ctx.stroke();ctx.beginPath();ctx.moveTo(cx,ry);ctx.bezierCurveTo(cx+20,ry-8,cx+38,ry+4,cx+34,ry+14);ctx.stroke();}
+    // Shoulders
+    ctx.beginPath();ctx.moveTo(cx-30,cy+44);ctx.lineTo(cx+30,cy+44);ctx.stroke();
+    // Arms
+    ctx.beginPath();ctx.moveTo(cx-30,cy+44);ctx.lineTo(cx-50,cy+100);ctx.lineTo(cx-42,cy+148);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+30,cy+44);ctx.lineTo(cx+50,cy+100);ctx.lineTo(cx+42,cy+148);ctx.stroke();
+    // Hips
+    ctx.beginPath();ctx.moveTo(cx-24,cy+140);ctx.lineTo(cx+24,cy+140);ctx.stroke();
+    // Legs
+    ctx.beginPath();ctx.moveTo(cx-18,cy+140);ctx.lineTo(cx-22,cy+200);ctx.lineTo(cx-18,cy+220);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+18,cy+140);ctx.lineTo(cx+22,cy+200);ctx.lineTo(cx+18,cy+220);ctx.stroke();
+    txt(ctx,'206 bones',cx+60,H/2,'rgba(56,189,248,0.8)',12);
+  }
+  if(scene==='heart'){
+    ctx.fillStyle='#1a0020';ctx.fillRect(0,0,W,H);
+    const cx=W/2,cy=H/2+10;
+    // Heart shape
+    ctx.fillStyle='#e74c3c';ctx.beginPath();
+    ctx.moveTo(cx,cy-10);ctx.bezierCurveTo(cx,cy-30,cx-50,cy-30,cx-50,cy-5);ctx.bezierCurveTo(cx-50,cy+20,cx,cy+50,cx,cy+55);
+    ctx.bezierCurveTo(cx,cy+50,cx+50,cy+20,cx+50,cy-5);ctx.bezierCurveTo(cx+50,cy-30,cx,cy-30,cx,cy-10);ctx.fill();
+    // Pulse line
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();
+    ctx.moveTo(cx-60,cy+15);ctx.lineTo(cx-30,cy+15);ctx.lineTo(cx-18,cy-18);ctx.lineTo(cx-6,cy+35);ctx.lineTo(cx+8,cy+5);ctx.lineTo(cx+20,cy+15);ctx.lineTo(cx+60,cy+15);ctx.stroke();
+    txt(ctx,'❤️ ~100,000 beats/day',cx,H-18,'rgba(255,255,255,0.7)',13);
+  }
+  if(scene==='lungs'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    const cx=W/2,top=30;
+    // Trachea
+    ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=8;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(cx,top);ctx.lineTo(cx,top+50);ctx.stroke();
+    // Bronchi
+    ctx.beginPath();ctx.moveTo(cx,top+50);ctx.lineTo(cx-60,top+80);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,top+50);ctx.lineTo(cx+60,top+80);ctx.stroke();
+    // Lungs
+    ctx.fillStyle='rgba(244,114,182,0.35)';ctx.strokeStyle='rgba(244,114,182,0.7)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.ellipse(cx-80,top+130,55,80,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.ellipse(cx+80,top+130,55,80,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    // Branch lines inside
+    ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
+    [[cx-60,top+80,cx-90,top+120],[cx-60,top+80,cx-50,top+125],[cx-90,top+120,cx-100,top+150],[cx-50,top+125,cx-60,top+155]].forEach(([x1,y1,x2,y2])=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();});
+    [[cx+60,top+80,cx+90,top+120],[cx+60,top+80,cx+50,top+125],[cx+90,top+120,cx+100,top+150],[cx+50,top+125,cx+60,top+155]].forEach(([x1,y1,x2,y2])=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();});
+    txt(ctx,'Left lung',cx-80,H-16,'rgba(244,114,182,0.8)',12);
+    txt(ctx,'Right lung',cx+80,H-16,'rgba(244,114,182,0.8)',12);
+  }
+  if(scene==='brain'){
+    ctx.fillStyle='#1a0020';ctx.fillRect(0,0,W,H);
+    const cx=W/2,cy=H/2;
+    ctx.fillStyle='rgba(244,114,182,0.2)';ctx.strokeStyle='rgba(244,114,182,0.6)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(cx,cy,110,85,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    // Folds
+    ctx.strokeStyle='rgba(244,114,182,0.4)';ctx.lineWidth=1.5;
+    [[-60,-40],[-30,-60],[0,-65],[35,-55],[65,-35],[80,-5],[70,30],[40,55],[0,65],[-40,55],[-70,25],[-82,-8]].forEach(([dx,dy],i,arr)=>{
+      if(i<arr.length-1){const [dx2,dy2]=arr[i+1];ctx.beginPath();ctx.moveTo(cx+dx,cy+dy);ctx.quadraticCurveTo(cx+(dx+dx2)/2+15*(i%2?1:-1),cy+(dy+dy2)/2,cx+dx2,cy+dy2);ctx.stroke();}
+    });
+    // Centre divide
+    ctx.beginPath();ctx.moveTo(cx,cy-82);ctx.lineTo(cx,cy+82);ctx.stroke();
+    txt(ctx,'Left hemisphere',cx-56,H-16,'rgba(244,114,182,0.7)',11);
+    txt(ctx,'Right hemisphere',cx+56,H-16,'rgba(244,114,182,0.7)',11);
+  }
+  if(scene==='digestion'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    const items=[['👄 Mouth',W/2,24],['↓',W/2,52],['🫁 Oesophagus',W/2,72],['↓',W/2,100],['🫃 Stomach',W/2,120],['↓',W/2,152],['〰️ Small intestine',W/2,175],['↓',W/2,207],['⬇️ Large intestine',W/2,228]];
+    items.forEach(([t,x,y])=>{
+      if(t==='↓'){ctx.fillStyle='rgba(56,189,248,0.5)';ctx.fillText('↓',x-4,y+10);}
+      else{ctx.fillStyle='rgba(255,255,255,0.06)';roundRect(ctx,x-100,y-14,200,28,8);ctx.fill();txt(ctx,t,x,y+3,'#bae6fd',13);}
+    });
+  }
+  if(scene==='elec1'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    // Lightning
+    ctx.strokeStyle='#fbbf24';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(W*0.5,20);ctx.lineTo(W*0.44,80);ctx.lineTo(W*0.52,80);ctx.lineTo(W*0.42,160);ctx.stroke();
+    // Glow
+    ctx.shadowBlur=20;ctx.shadowColor='#fbbf24';ctx.stroke();ctx.shadowBlur=0;
+    // Electrons
+    [0.2,0.35,0.65,0.8].forEach(fx=>{ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(W*fx,H*0.55,6,0,Math.PI*2);ctx.fill();txt(ctx,'e⁻',W*fx,H*0.55+4,'rgba(255,255,255,0.8)',10);});
+    txt(ctx,'⚡ Electrons moving = electricity',W*0.5,H-18,'rgba(255,255,255,0.6)',13);
+  }
+  if(scene==='elec2'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    // Circuit rectangle
+    const l=80,t=50,r=W-80,b=H-50;
+    ctx.strokeStyle='#38bdf8';ctx.lineWidth=3;
+    // Top wire
+    ctx.beginPath();ctx.moveTo(l,t);ctx.lineTo(r,t);ctx.stroke();
+    // Right wire
+    ctx.beginPath();ctx.moveTo(r,t);ctx.lineTo(r,b);ctx.stroke();
+    // Bottom wire
+    ctx.beginPath();ctx.moveTo(r,b);ctx.lineTo(l,b);ctx.stroke();
+    // Left wire (battery)
+    ctx.beginPath();ctx.moveTo(l,b);ctx.lineTo(l,t);ctx.stroke();
+    // Battery
+    ctx.fillStyle='#fbbf24';roundRect(ctx,l-18,H/2-28,36,56,6);ctx.fill();
+    txt(ctx,'🔋',l,H/2+6,'#1a0a2e',18);
+    // Bulb
+    ctx.fillStyle='rgba(255,255,255,0.15)';ctx.beginPath();ctx.arc(r,H/2,22,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,200,50,0.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(r,H/2,22,0,Math.PI*2);ctx.stroke();
+    txt(ctx,'💡',r,H/2+6,'',22);
+    // Flow arrows
+    [[W/2,t,1,0],[r,H/2,0,1],[W/2,b,-1,0],[l,H/2,0,-1]].forEach(([x,y,dx,dy])=>{ctx.strokeStyle='rgba(56,189,248,0.5)';ctx.lineWidth=2;arrowHead(ctx,x+dx*0,y+dy*0,'#38bdf8');});
+    txt(ctx,'Complete circuit = light!',W/2,H/2+80,'rgba(255,255,255,0.5)',12);
+  }
+  if(scene==='elec3'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    const items=[[W*0.22,'🔌 Copper wire','Conductor','#34d399'],[W*0.5,'🥢 Wooden stick','Insulator','#f87171'],[W*0.78,'🧤 Rubber glove','Insulator','#f87171']];
+    items.forEach(([x,icon,label,col])=>{
+      ctx.fillStyle=col+'22';roundRect(ctx,x-55,50,110,140,14);ctx.fill();ctx.strokeStyle=col+'88';ctx.lineWidth=1.5;ctx.stroke();
+      txt(ctx,icon,x,106,'',28);txt(ctx,label,x,150,col,13);
+    });
+    txt(ctx,'Conductors let electricity flow. Insulators block it.',W/2,H-18,'rgba(255,255,255,0.5)',12);
+  }
+  if(scene==='elec4'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    // Series
+    txt(ctx,'Series circuit',W*0.25,28,'#38bdf8',13);
+    ctx.strokeStyle='#38bdf8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(40,H/2-30);ctx.lineTo(W*0.48,H/2-30);ctx.lineTo(W*0.48,H/2+30);ctx.lineTo(40,H/2+30);ctx.lineTo(40,H/2-30);ctx.stroke();
+    [W*0.15,W*0.3].forEach(x=>{ctx.fillStyle='rgba(255,200,50,0.2)';ctx.beginPath();ctx.arc(x,H/2,15,0,Math.PI*2);ctx.fill();txt(ctx,'💡',x,H/2+6,'',16);});
+    txt(ctx,'One breaks → all off',W*0.25,H/2+55,'rgba(248,113,113,0.8)',11);
+    // Parallel
+    txt(ctx,'Parallel circuit',W*0.73,28,'#34d399',13);
+    ctx.strokeStyle='#34d399';ctx.lineWidth=2;
+    [[W*0.6,W*0.65],[W*0.75,W*0.8]].forEach(([x1,x2])=>{ctx.beginPath();ctx.moveTo(x1,H/2-50);ctx.lineTo(x2,H/2-50);ctx.lineTo(x2,H/2+50);ctx.lineTo(x1,H/2+50);ctx.stroke();ctx.fillStyle='rgba(52,211,153,0.15)';ctx.beginPath();ctx.arc((x1+x2)/2,H/2,14,0,Math.PI*2);ctx.fill();txt(ctx,'💡',(x1+x2)/2,H/2+6,'',15);});
+    ctx.beginPath();ctx.moveTo(W*0.6,H/2-50);ctx.lineTo(W*0.55,H/2-50);ctx.lineTo(W*0.55,H/2+50);ctx.lineTo(W*0.6,H/2+50);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(W*0.8,H/2-50);ctx.lineTo(W*0.87,H/2-50);ctx.lineTo(W*0.87,H/2+50);ctx.lineTo(W*0.8,H/2+50);ctx.stroke();
+    txt(ctx,'One breaks → others stay on ✓',W*0.73,H/2+65,'rgba(52,211,153,0.8)',11);
+  }
+  if(scene==='elec5'){
+    ctx.fillStyle='#001629';ctx.fillRect(0,0,W,H);
+    const nodes=[['⚡ Power station',80,H/2],['🏭 Transformer',W*0.38,H/2],['🏘️ Homes',W*0.72,H/2]];
+    nodes.forEach(([label,x,y],i)=>{ctx.fillStyle='rgba(56,189,248,0.1)';roundRect(ctx,x-52,y-30,104,60,12);ctx.fill();ctx.strokeStyle='#38bdf866';ctx.lineWidth=1;ctx.stroke();txt(ctx,label,x,y+5,'#bae6fd',12);if(i<nodes.length-1){ctx.strokeStyle='#fbbf24';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x+54,y);ctx.lineTo(nodes[i+1][1]-54,y);ctx.stroke();arrowHead(ctx,nodes[i+1][1]-56,y,'#fbbf24');}});
+    const devices=['💡','📺','🖥️','❄️'];devices.forEach((d,i)=>{txt(ctx,d,W*0.72+(i-1.5)*34,H/2+70,'',22);});
+    txt(ctx,'Electricity travels from power station to your home',W/2,H-16,'rgba(255,255,255,0.4)',11);
+  }
+}
+
+// Canvas helpers
+function txt(ctx,t,x,y,col,size){ctx.font=`${size||13}px Nunito,sans-serif`;ctx.fillStyle=col||'rgba(255,255,255,0.7)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x,y);}
+function drawCloud(ctx,x,y,r){ctx.fillStyle='rgba(184,212,240,0.55)';[{dx:0,dy:0,r:r},{dx:-r*0.55,dy:r*0.15,r:r*0.7},{dx:r*0.55,dy:r*0.15,r:r*0.7},{dx:-r*0.25,dy:r*0.35,r:r*0.55},{dx:r*0.25,dy:r*0.35,r:r*0.55}].forEach(c=>{ctx.beginPath();ctx.arc(x+c.dx,y+c.dy,c.r,0,Math.PI*2);ctx.fill();});}
+function drawPlant(ctx,x,base){ctx.strokeStyle='#27ae60';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,base);ctx.quadraticCurveTo(x,base-40,x-20,base-60);ctx.stroke();ctx.fillStyle='#27ae60';ctx.beginPath();ctx.ellipse(x-18,base-58,18,12,-0.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(x,base-20);ctx.quadraticCurveTo(x,base-50,x+22,base-62);ctx.stroke();ctx.beginPath();ctx.ellipse(x+20,base-60,18,12,0.5,0,Math.PI*2);ctx.fill();}
+function bgGrass(ctx,W,H){ctx.fillStyle='#0d2b0d';ctx.fillRect(0,0,W,H);ctx.fillStyle='#2d6a2d';ctx.fillRect(0,H*0.78,W,H*0.22);}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);}
+function arrow(ctx,x1,y1,x2,y2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();arrowHead(ctx,x2,y2,ctx.strokeStyle);}
+function arrowHead(ctx,x,y,col){ctx.fillStyle=col||'#34d399';ctx.beginPath();ctx.moveTo(x,y-7);ctx.lineTo(x+5,y+5);ctx.lineTo(x-5,y+5);ctx.closePath();ctx.fill();}
+
+// Quiz
+function loadQuiz(){
+  quizAnswered=false;
+  const q=TOPICS[topicIdx].quiz[quizIdx%TOPICS[topicIdx].quiz.length];
+  document.getElementById('quiz-title').textContent=q.q;
+  document.getElementById('q-feedback').textContent='';
+  document.getElementById('q-feedback').className='q-feedback';
+  document.getElementById('quiz-score-chip').textContent=`Quiz score: ${quizScore} / ${quizIdx}`;
+  const el=document.getElementById('q-opts');
+  el.innerHTML='';
+  [...q.opts].sort(()=>Math.random()-.5).forEach(o=>{
+    const b=document.createElement('button');
+    b.className='q-opt';b.textContent=o;
+    b.onclick=()=>answerQuiz(o,b,q.a);
+    el.appendChild(b);
+  });
+}
+
+function answerQuiz(val,btn,correct){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  const ok=val===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.q-opt').forEach(b=>{b.disabled=true;if(b.textContent===correct)b.classList.add('correct');});
+  if(ok)quizScore++;
+  quizIdx++;
+  const fb=document.getElementById('q-feedback');
+  fb.textContent=ok?['Correct! 🌟','Spot on! ⭐','Brilliant! 🎉'][Math.floor(Math.random()*3)]:`The answer was: ${correct}`;
+  fb.className='q-feedback '+(ok?'good':'bad');
+  document.getElementById('quiz-score-chip').textContent=`Quiz score: ${quizScore} / ${quizIdx}`;
+  setTimeout(()=>{loadQuiz();},1800);
+}
+
+// Init
+buildStepBar();render();loadQuiz();
+window.addEventListener('resize',()=>render());
+</script>
+</body>
+</html>
