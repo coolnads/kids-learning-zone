@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#fbbf24"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<title>Map Quiz 🗺️</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#051520;color:#fff;min-height:100vh}
+  .wrap{max-width:800px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#34d399;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);padding:6px 14px;border-radius:99px}
+  .back:hover{background:rgba(52,211,153,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#34d399}
+
+  /* Region filter */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .f-btn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#94a3b8;transition:all .15s;font-family:'Nunito',sans-serif}
+  .f-btn.active{background:#34d399;border-color:#34d399;color:#022c22}
+  .f-btn:hover:not(.active){background:rgba(255,255,255,.1)}
+
+  /* Score row */
+  .score-bar{display:flex;gap:12px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:8px 18px;min-width:70px}
+  .stat .sv{font-size:22px;font-weight:900;color:#34d399}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Challenge banner */
+  .challenge{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:18px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .challenge-flag{font-size:44px;line-height:1;flex-shrink:0}
+  .challenge-text{}
+  .challenge-label{font-size:11px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+  .challenge-q{font-size:20px;font-weight:900;color:#fff}
+  .challenge-hint{font-size:13px;color:#94a3b8;margin-top:3px}
+
+  /* Progress dots */
+  .prog{display:flex;gap:5px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#34d399}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* Map container */
+  .map-wrap{background:#0a2a3a;border:1px solid rgba(52,211,153,.15);border-radius:20px;overflow:hidden;margin-bottom:16px;position:relative;touch-action:manipulation}
+  #world-map{width:100%;height:auto;display:block;cursor:crosshair}
+
+  /* Country SVG paths */
+  .country{fill:#1a4a5a;stroke:#0a2a3a;stroke-width:0.5;transition:fill .2s;cursor:pointer}
+  .country:hover{fill:#2d7a6a}
+  .country.target{fill:#fbbf24;stroke:#f59e0b;stroke-width:1.5;animation:pulse-target 1s ease-in-out infinite alternate}
+  @keyframes pulse-target{from{fill:#fbbf24}to{fill:#f97316}}
+  .country.correct-hit{fill:#34d399;stroke:#10b981;stroke-width:1.5}
+  .country.wrong-hit{fill:#f87171;stroke:#ef4444;stroke-width:1.5}
+  .country.revealed{fill:#34d399;stroke:#10b981;stroke-width:1;opacity:.7}
+
+  /* Tooltip */
+  .map-tip{position:absolute;background:rgba(0,0,0,.85);color:#fff;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;padding:5px 12px;border-radius:8px;pointer-events:none;display:none;z-index:10;white-space:nowrap}
+
+  /* Feedback bar */
+  .feedback{text-align:center;font-size:16px;font-weight:700;min-height:26px;margin-bottom:12px}
+  .feedback.good{color:#34d399}
+  .feedback.bad{color:#f87171}
+
+  /* Fact reveal */
+  .fact-reveal{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:14px;padding:12px 16px;font-size:14px;color:#a7f3d0;line-height:1.6;margin-bottom:14px;display:none}
+  .fact-reveal.show{display:block}
+  .fact-reveal strong{color:#34d399}
+
+  .next-btn{display:none;margin:0 auto;padding:11px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#34d399;color:#022c22;border:none;border-radius:99px;cursor:pointer}
+  .next-btn:hover{background:#10b981}
+
+  /* End screen */
+  .end-screen{display:none;text-align:center;padding:28px 0}
+  .end-screen h2{font-size:26px;font-weight:900;margin-bottom:6px}
+  .end-big{font-size:64px;font-weight:900;color:#34d399;line-height:1;margin:12px 0}
+  .restart-btn{padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#34d399;color:#022c22;border:none;border-radius:99px;cursor:pointer;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🗺️ <span>Map Quiz</span></div>
+  </div>
+
+  <div class="filters">
+    <button class="f-btn active" onclick="setRegion('World',this)">🌍 World</button>
+    <button class="f-btn" onclick="setRegion('Europe',this)">🏰 Europe</button>
+    <button class="f-btn" onclick="setRegion('Asia',this)">🏯 Asia</button>
+    <button class="f-btn" onclick="setRegion('Americas',this)">🌵 Americas</button>
+    <button class="f-btn" onclick="setRegion('Africa',this)">🦁 Africa</button>
+  </div>
+
+  <div class="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/10</div><div class="sl">Round</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <div class="challenge" id="challenge">
+    <div class="challenge-flag" id="c-flag">🌍</div>
+    <div class="challenge-text">
+      <div class="challenge-label">Find this country on the map →</div>
+      <div class="challenge-q" id="c-name">Loading...</div>
+      <div class="challenge-hint" id="c-hint"></div>
+    </div>
+  </div>
+
+  <div class="prog" id="prog"></div>
+
+  <div class="map-wrap" id="map-wrap">
+    <div class="map-tip" id="map-tip"></div>
+    <svg id="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+      <!-- Simplified world map paths - major recognisable countries -->
+
+      <!-- EUROPE -->
+      <path id="c-gb" class="country" data-name="United Kingdom" d="M440,88 L448,82 L455,86 L458,96 L452,104 L444,108 L436,102 L432,94 Z M448,74 L454,70 L460,74 L458,82 L450,84 Z"/>
+      <path id="c-fr" class="country" data-name="France" d="M448,108 L466,104 L478,110 L480,126 L472,136 L456,138 L444,130 L442,116 Z"/>
+      <path id="c-de" class="country" data-name="Germany" d="M470,92 L488,88 L498,96 L496,112 L482,118 L468,114 L466,104 L470,92 Z"/>
+      <path id="c-es" class="country" data-name="Spain" d="M440,136 L472,136 L480,142 L476,158 L460,166 L440,162 L428,150 L430,138 Z"/>
+      <path id="c-it" class="country" data-name="Italy" d="M476,124 L492,120 L498,130 L496,148 L490,160 L480,168 L472,156 L470,140 L474,128 Z"/>
+      <path id="c-pt" class="country" data-name="Portugal" d="M428,136 L440,136 L440,154 L434,162 L424,158 L422,144 Z"/>
+      <path id="c-pl" class="country" data-name="Poland" d="M494,88 L516,86 L520,100 L516,112 L498,116 L490,108 L492,96 Z"/>
+      <path id="c-se" class="country" data-name="Sweden" d="M476,58 L490,52 L498,60 L494,80 L482,86 L472,78 L472,66 Z"/>
+      <path id="c-no" class="country" data-name="Norway" d="M454,48 L474,44 L480,54 L476,66 L464,72 L452,66 L448,56 Z"/>
+      <path id="c-fi" class="country" data-name="Finland" d="M494,44 L510,40 L518,52 L514,68 L500,74 L488,66 L486,54 Z"/>
+      <path id="c-ua" class="country" data-name="Ukraine" d="M516,96 L548,90 L556,102 L550,118 L528,122 L512,116 L510,104 Z"/>
+      <path id="c-gr" class="country" data-name="Greece" d="M502,138 L518,134 L522,148 L514,160 L500,158 L496,148 Z"/>
+      <path id="c-ro" class="country" data-name="Romania" d="M518,108 L538,106 L542,120 L530,128 L514,124 L512,112 Z"/>
+      <path id="c-nl" class="country" data-name="Netherlands" d="M460,92 L472,90 L474,100 L464,104 L456,100 Z"/>
+      <path id="c-be" class="country" data-name="Belgium" d="M460,100 L472,98 L474,108 L462,110 L456,106 Z"/>
+      <path id="c-ch" class="country" data-name="Switzerland" d="M468,118 L482,116 L484,126 L472,128 L464,124 Z"/>
+
+      <!-- RUSSIA spans europe/asia -->
+      <path id="c-ru" class="country" data-name="Russia" d="M520,40 L700,28 L740,36 L750,60 L720,80 L700,90 L660,88 L620,82 L580,76 L548,80 L530,68 L518,56 Z"/>
+
+      <!-- ASIA -->
+      <path id="c-cn" class="country" data-name="China" d="M660,110 L720,100 L750,110 L755,140 L740,160 L710,168 L680,162 L658,148 L650,128 Z"/>
+      <path id="c-in" class="country" data-name="India" d="M620,140 L650,134 L660,148 L658,170 L645,195 L628,198 L610,180 L604,160 L610,144 Z"/>
+      <path id="c-jp" class="country" data-name="Japan" d="M756,110 L766,106 L772,118 L766,130 L756,128 L750,118 Z M760,130 L768,126 L774,138 L768,148 L758,144 Z"/>
+      <path id="c-sa" class="country" data-name="Saudi Arabia" d="M560,148 L596,142 L608,154 L602,174 L576,178 L556,168 L552,156 Z"/>
+      <path id="c-ir" class="country" data-name="Iran" d="M574,122 L610,116 L622,128 L618,144 L600,150 L574,144 L566,132 Z"/>
+      <path id="c-tr" class="country" data-name="Turkey" d="M524,118 L562,114 L570,126 L560,136 L524,136 L516,126 Z"/>
+      <path id="c-pk" class="country" data-name="Pakistan" d="M608,128 L638,122 L646,138 L636,152 L610,154 L600,144 L604,132 Z"/>
+      <path id="c-kz" class="country" data-name="Kazakhstan" d="M564,78 L630,72 L644,88 L640,108 L614,114 L572,106 L556,90 Z"/>
+      <path id="c-mn" class="country" data-name="Mongolia" d="M640,80 L710,74 L718,92 L704,106 L660,108 L638,94 Z"/>
+      <path id="c-th" class="country" data-name="Thailand" d="M680,168 L692,164 L698,180 L690,200 L678,196 L672,180 Z"/>
+      <path id="c-id" class="country" data-name="Indonesia" d="M700,210 L730,204 L740,214 L730,224 L700,222 Z M742,208 L768,202 L778,212 L768,222 L742,218 Z"/>
+      <path id="c-vn" class="country" data-name="Vietnam" d="M700,160 L714,156 L720,174 L712,196 L700,194 L694,176 Z"/>
+      <path id="c-af" class="country" data-name="Afghanistan" d="M600,114 L632,108 L642,122 L630,134 L608,132 L596,122 Z"/>
+
+      <!-- AFRICA -->
+      <path id="c-eg" class="country" data-name="Egypt" d="M524,148 L554,146 L556,168 L540,180 L520,172 L516,158 Z"/>
+      <path id="c-ly" class="country" data-name="Libya" d="M490,148 L524,148 L524,174 L504,184 L484,174 L480,158 Z"/>
+      <path id="c-ma" class="country" data-name="Morocco" d="M432,148 L458,146 L462,162 L450,174 L430,172 L422,160 Z"/>
+      <path id="c-ng" class="country" data-name="Nigeria" d="M476,192 L506,188 L510,210 L494,224 L472,220 L466,204 Z"/>
+      <path id="c-et" class="country" data-name="Ethiopia" d="M536,188 L568,184 L572,206 L552,220 L528,214 L524,198 Z"/>
+      <path id="c-ke" class="country" data-name="Kenya" d="M548,210 L574,208 L576,232 L556,242 L534,232 L532,216 Z"/>
+      <path id="c-za" class="country" data-name="South Africa" d="M490,272 L528,268 L534,290 L514,308 L490,304 L476,288 Z"/>
+      <path id="c-cd" class="country" data-name="DR Congo" d="M496,216 L532,212 L536,240 L516,256 L490,248 L484,228 Z"/>
+      <path id="c-tz" class="country" data-name="Tanzania" d="M526,234 L558,230 L560,256 L540,268 L514,260 L512,242 Z"/>
+      <path id="c-dz" class="country" data-name="Algeria" d="M452,152 L490,148 L492,174 L476,190 L448,184 L440,166 Z"/>
+      <path id="c-sd" class="country" data-name="Sudan" d="M522,168 L556,164 L560,186 L538,202 L514,196 L510,178 Z"/>
+      <path id="c-gh" class="country" data-name="Ghana" d="M460,196 L476,194 L478,214 L464,220 L452,212 Z"/>
+      <path id="c-ci" class="country" data-name="Ivory Coast" d="M444,196 L460,194 L462,212 L448,218 L436,210 Z"/>
+      <path id="c-cm" class="country" data-name="Cameroon" d="M490,198 L508,196 L510,216 L496,224 L482,216 L480,206 Z"/>
+      <path id="c-mz" class="country" data-name="Mozambique" d="M530,252 L554,248 L556,278 L534,292 L516,280 L514,260 Z"/>
+      <path id="c-mg" class="country" data-name="Madagascar" d="M568,248 L580,244 L584,272 L574,288 L560,280 L558,260 Z"/>
+
+      <!-- AMERICAS -->
+      <path id="c-us" class="country" data-name="USA" d="M100,100 L220,96 L224,140 L200,156 L160,160 L120,152 L88,132 L86,114 Z M240,102 L260,98 L262,114 L250,118 L238,112 Z"/>
+      <path id="c-ca" class="country" data-name="Canada" d="M80,50 L260,44 L266,92 L240,100 L220,94 L100,98 L82,78 Z"/>
+      <path id="c-mx" class="country" data-name="Mexico" d="M90,156 L156,158 L172,174 L162,194 L130,198 L96,184 L80,168 Z"/>
+      <path id="c-br" class="country" data-name="Brazil" d="M200,210 L270,204 L290,230 L280,280 L240,300 L196,288 L174,256 L178,224 Z"/>
+      <path id="c-ar" class="country" data-name="Argentina" d="M196,290 L236,286 L244,320 L222,360 L198,352 L180,316 Z"/>
+      <path id="c-co" class="country" data-name="Colombia" d="M160,196 L200,192 L206,214 L186,226 L158,220 L148,208 Z"/>
+      <path id="c-pe" class="country" data-name="Peru" d="M156,218 L194,214 L200,246 L178,264 L150,254 L142,234 Z"/>
+      <path id="c-ve" class="country" data-name="Venezuela" d="M184,190 L222,186 L226,206 L204,214 L180,208 Z"/>
+      <path id="c-cl" class="country" data-name="Chile" d="M178,264 L200,260 L204,318 L192,360 L174,350 L170,292 Z"/>
+      <path id="c-bo" class="country" data-name="Bolivia" d="M188,246 L216,242 L220,270 L196,278 L178,268 Z"/>
+
+      <!-- OCEANIA -->
+      <path id="c-au" class="country" data-name="Australia" d="M740,270 L820,260 L840,280 L844,320 L820,350 L776,356 L744,334 L730,300 Z"/>
+      <path id="c-nz" class="country" data-name="New Zealand" d="M862,316 L874,310 L880,326 L870,340 L858,334 Z M866,342 L876,336 L882,350 L872,362 L860,356 Z"/>
+    </svg>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+  <div class="fact-reveal" id="fact-reveal"></div>
+  <button class="next-btn" id="next-btn" onclick="nextQ()">Next country ➡</button>
+
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:54px">🗺️</div>
+    <h2 id="end-title">Map master!</h2>
+    <div class="end-big" id="end-score">0</div>
+    <p style="color:#94a3b8" id="end-msg">out of 10</p>
+    <div id="end-stars" style="font-size:36px;margin:12px 0"></div>
+    <button class="restart-btn" onclick="startGame()">Play again ↺</button>
+  </div>
+</div>
+
+<script src="badges.js"></script>
+<script>
+const COUNTRIES_DATA = {
+  // Europe
+  'c-gb':{name:'United Kingdom',flag:'🇬🇧',region:'Europe',hint:'An island nation off the northwest coast of Europe',fact:'The UK is made up of four countries: England, Scotland, Wales, and Northern Ireland. London, its capital, is one of the most visited cities in the world.'},
+  'c-fr':{name:'France',flag:'🇫🇷',region:'Europe',hint:'Home to the Eiffel Tower',fact:'France is the most visited country in the world, attracting over 80 million tourists a year. It also produces over 1,200 different types of cheese!'},
+  'c-de':{name:'Germany',flag:'🇩🇪',region:'Europe',hint:'In the heart of Europe, capital is Berlin',fact:'Germany is home to over 1,500 different types of beer and more than 300 kinds of bread. It also has the world\'s oldest still-operating brewery, dating back to 1040 AD.'},
+  'c-es':{name:'Spain',flag:'🇪🇸',region:'Europe',hint:'On the Iberian Peninsula, known for flamenco',fact:'Spain is home to La Tomatina — a festival where thousands of people throw tomatoes at each other just for fun!'},
+  'c-it':{name:'Italy',flag:'🇮🇹',region:'Europe',hint:'Shaped like a boot, home of pizza and pasta',fact:'Italy has more UNESCO World Heritage Sites than any other country. Pizza was invented in Naples in the 1800s and Italians eat about 25 kg of pasta per person every year.'},
+  'c-pt':{name:'Portugal',flag:'🇵🇹',region:'Europe',hint:'On the western edge of Europe, beside Spain',fact:'Portugal is the world\'s largest producer of cork, which comes from cork oak trees. The bark is harvested without cutting down the tree!'},
+  'c-pl':{name:'Poland',flag:'🇵🇱',region:'Europe',hint:'Between Germany and Ukraine',fact:'Poland has the world\'s largest castle by land area — Malbork Castle, built by knights in the 13th century.'},
+  'c-se':{name:'Sweden',flag:'🇸🇪',region:'Europe',hint:'A long Scandinavian country, home of IKEA',fact:'Sweden has more islands than any country in Europe — over 220,000 of them! It is also home to the Nobel Prize ceremony each year.'},
+  'c-no':{name:'Norway',flag:'🇳🇴',region:'Europe',hint:'Land of the midnight sun and fjords',fact:'Norway has one of the world\'s longest road tunnels — the Lærdal Tunnel at 24.5 km. You can drive through a mountain for 20 minutes!'},
+  'c-ua':{name:'Ukraine',flag:'🇺🇦',region:'Europe',hint:'The largest country entirely in Europe',fact:'Ukraine is known as the "breadbasket of Europe" because it produces so much wheat and grain. It also has the world\'s deepest metro station — 105 metres underground.'},
+  'c-gr':{name:'Greece',flag:'🇬🇷',region:'Europe',hint:'Birthplace of the Olympics, lots of islands',fact:'Greece has more archaeological museums than any other country. The Greek alphabet is the basis for modern Latin, Cyrillic, and many other writing systems.'},
+  'c-ru':{name:'Russia',flag:'🇷🇺',region:'Europe',hint:'The largest country in the world',fact:'Russia spans 11 time zones — the largest of any country. If it were a continent, it would be the 7th largest in the world all by itself!'},
+  'c-nl':{name:'Netherlands',flag:'🇳🇱',region:'Europe',hint:'Famous for tulips, windmills and cycling',fact:'The Netherlands has more bicycles than people. About a quarter of the country is actually below sea level, protected by a huge network of dykes and barriers.'},
+  'c-ro':{name:'Romania',flag:'🇷🇴',region:'Europe',hint:'Home of Transylvania and Count Dracula\'s castle',fact:'Romania is home to Bran Castle, which inspired the story of Count Dracula. Romania also has Europe\'s largest and heaviest building — the Palace of the Parliament.'},
+
+  // Asia
+  'c-cn':{name:'China',flag:'🇨🇳',region:'Asia',hint:'Most populated country in the world',fact:'China has the world\'s longest wall — the Great Wall stretches over 21,000 km. China also invented paper, printing, gunpowder, and the compass.'},
+  'c-in':{name:'India',flag:'🇮🇳',region:'Asia',hint:'A large triangular peninsula in South Asia',fact:'India is the world\'s largest democracy. It invented the number system we use today including zero. The game of chess was also invented in India over 1,500 years ago.'},
+  'c-jp':{name:'Japan',flag:'🇯🇵',region:'Asia',hint:'An island nation east of China',fact:'Japan has the world\'s oldest company — a construction firm called Kongō Gumi, founded in 578 AD. Japan also has more vending machines per person than any other country!'},
+  'c-sa':{name:'Saudi Arabia',flag:'🇸🇦',region:'Asia',hint:'Desert kingdom, home of Mecca',fact:'Saudi Arabia has no rivers. It is one of the largest countries in the world with almost no permanent bodies of fresh water — it relies on desalination plants for water.'},
+  'c-ir':{name:'Iran',flag:'🇮🇷',region:'Asia',hint:'Ancient Persia, large country in the Middle East',fact:'Iran is home to one of the world\'s oldest civilisations. The Persian Empire was once the largest empire in history, stretching from Greece to India.'},
+  'c-tr':{name:'Turkey',flag:'🇹🇷',region:'Asia',hint:'Bridges Europe and Asia',fact:'Turkey is the only country in the world that straddles two continents. Istanbul (its largest city) is split between Europe and Asia by the Bosphorus strait.'},
+  'c-kz':{name:'Kazakhstan',flag:'🇰🇿',region:'Asia',hint:'The largest landlocked country in the world',fact:'Kazakhstan is so large that its western regions are in Europe and its eastern regions are in Asia. It\'s the 9th largest country in the world by area.'},
+  'c-mn':{name:'Mongolia',flag:'🇲🇳',region:'Asia',hint:'Home of Genghis Khan and vast grasslands',fact:'Mongolia has the lowest population density of any country. It is home to the Gobi Desert and a nomadic culture where many people still live in circular tents called gers.'},
+  'c-id':{name:'Indonesia',flag:'🇮🇩',region:'Asia',hint:'An archipelago of over 17,000 islands',fact:'Indonesia is the world\'s largest archipelago country with 17,508 islands. It has more volcanoes than any other country and is home to the Komodo dragon.'},
+  'c-th':{name:'Thailand',flag:'🇹🇭',region:'Asia',hint:'Southeast Asia, land of temples and elephants',fact:'Thailand is the world\'s largest exporter of rice. The elephant is Thailand\'s national animal and has been used in war, transport, and ceremonies for centuries.'},
+  'c-vn':{name:'Vietnam',flag:'🇻🇳',region:'Asia',hint:'Long S-shaped country in Southeast Asia',fact:'Vietnam has Ha Long Bay, one of the most beautiful natural wonders in the world. It features nearly 2,000 limestone islands rising from emerald waters.'},
+  'c-pk':{name:'Pakistan',flag:'🇵🇰',region:'Asia',hint:'South Asia, home of the K2 mountain',fact:'Pakistan is home to K2 — the world\'s second highest mountain and widely considered the world\'s most dangerous mountain to climb.'},
+  'c-af':{name:'Afghanistan',flag:'🇦🇫',region:'Asia',hint:'Landlocked country between Central and South Asia',fact:'Afghanistan is home to the ancient Silk Road trading route and one of the oldest cities in the world — Balkh, which is over 3,500 years old.'},
+
+  // Africa
+  'c-eg':{name:'Egypt',flag:'🇪🇬',region:'Africa',hint:'Home of the pyramids and the Nile River',fact:'Egypt has more ancient monuments than any other country. The Great Pyramid of Giza was the world\'s tallest structure for 3,800 years — until 1311 AD!'},
+  'c-ng':{name:'Nigeria',flag:'🇳🇬',region:'Africa',hint:'Most populated country in Africa',fact:'Nigeria is Africa\'s most populous country and largest economy. It has the second largest film industry in the world after India\'s Bollywood — called Nollywood.'},
+  'c-et':{name:'Ethiopia',flag:'🇪🇹',region:'Africa',hint:'Never colonised African nation, home of coffee',fact:'Coffee was discovered in Ethiopia — legend says a goat herder noticed his goats were very energetic after eating berries from a certain tree. Ethiopia is also one of the oldest nations in the world.'},
+  'c-ke':{name:'Kenya',flag:'🇰🇪',region:'Africa',hint:'Home of safaris and the Maasai Mara',fact:'Kenya has a national park right inside its capital city, Nairobi. You can see lions and giraffes with skyscrapers in the background!'},
+  'c-za':{name:'South Africa',flag:'🇿🇦',region:'Africa',hint:'At the very southern tip of Africa',fact:'South Africa has three capital cities — Pretoria (government), Cape Town (parliament), and Bloemfontein (courts). It is the only country in the world with three capitals.'},
+  'c-ma':{name:'Morocco',flag:'🇲🇦',region:'Africa',hint:'Northwest Africa, just across from Spain',fact:'Morocco\'s city of Fes has the world\'s oldest continuously operating university — the University of al-Qarawiyyin, founded in 859 AD.'},
+  'c-dz':{name:'Algeria',flag:'🇩🇿',region:'Africa',hint:'Largest country in Africa',fact:'Algeria is the largest country in Africa by area. About 90% of Algeria is covered by the Sahara Desert — the world\'s largest hot desert.'},
+  'c-tz':{name:'Tanzania',flag:'🇹🇿',region:'Africa',hint:'Home of Mount Kilimanjaro and Serengeti',fact:'Tanzania is home to Mount Kilimanjaro — Africa\'s highest mountain at 5,895 metres. It is also home to the Serengeti, site of the greatest wildlife migration on Earth.'},
+  'c-cd':{name:'DR Congo',flag:'🇨🇩',region:'Africa',hint:'Central Africa, has the Congo rainforest',fact:'The Democratic Republic of Congo has the world\'s second largest tropical rainforest after the Amazon. The Congo River is the world\'s deepest river at over 220 metres deep.'},
+  'c-gh':{name:'Ghana',flag:'🇬🇭',region:'Africa',hint:'West Africa, first sub-Saharan country to gain independence',fact:'Ghana was the first country in sub-Saharan Africa to gain independence from European rule in 1957. Its name means "Warrior King" in the Soninke language.'},
+  'c-mz':{name:'Mozambique',flag:'🇲🇿',region:'Africa',hint:'Southeast Africa, long Indian Ocean coastline',fact:'Mozambique has one of the longest coastlines in Africa at 2,470 km. It is home to the UNESCO-listed island of Mozambique, a tiny island with 500 years of history.'},
+  'c-mg':{name:'Madagascar',flag:'🇲🇬',region:'Africa',hint:'Island nation off the east coast of Africa',fact:'Madagascar split from Africa 165 million years ago. Because of this, about 90% of its wildlife is found nowhere else on Earth — including over 100 species of lemur!'},
+  'c-sd':{name:'Sudan',flag:'🇸🇩',region:'Africa',hint:'Northeast Africa, along the Nile',fact:'Sudan actually has more ancient pyramids than Egypt — over 200 of them! They were built by the Nubian Kingdom of Kush, an ancient civilisation that rivalled Egypt.'},
+  'c-cm':{name:'Cameroon',flag:'🇨🇲',region:'Africa',hint:'Central West Africa, at the bend of the continent',fact:'Cameroon is called "Africa in miniature" because it has every type of landscape found across the continent — beaches, desert, mountains, rainforest, and savannah.'},
+  'c-ly':{name:'Libya',flag:'🇱🇾',region:'Africa',hint:'North Africa, between Egypt and Tunisia',fact:'About 90% of Libya is covered by desert. It has some of the most well-preserved ancient Roman ruins in the world, including the remarkable city of Leptis Magna.'},
+
+  // Americas
+  'c-us':{name:'USA',flag:'🇺🇸',region:'Americas',hint:'The United States, world\'s most powerful economy',fact:'The USA has the world\'s oldest written national constitution, dating to 1787. It also has more public libraries than McDonald\'s restaurants!'},
+  'c-ca':{name:'Canada',flag:'🇨🇦',region:'Americas',hint:'The second largest country in the world',fact:'Canada has the longest coastline of any country in the world at 202,080 km. It also has more lakes than all other countries combined.'},
+  'c-br':{name:'Brazil',flag:'🇧🇷',region:'Americas',hint:'The largest country in South America',fact:'Brazil contains about 60% of the Amazon rainforest — the largest tropical rainforest on Earth. It is so large that it produces 20% of the world\'s oxygen.'},
+  'c-mx':{name:'Mexico',flag:'🇲🇽',region:'Americas',hint:'South of the USA, large and colourful',fact:'Mexico City was built on the ruins of the ancient Aztec capital Tenochtitlán. Mexico is also where chocolate, chilies, and avocados were first cultivated!'},
+  'c-ar':{name:'Argentina',flag:'🇦🇷',region:'Americas',hint:'Long thin country at the southern tip of South America',fact:'Argentina has the highest point in the Americas outside Alaska — Aconcagua at 6,961 metres. It is also the birthplace of tango and has the second largest Spanish-speaking population in the world.'},
+  'c-co':{name:'Colombia',flag:'🇨🇴',region:'Americas',hint:'Northwest South America, only coast on two oceans',fact:'Colombia is the only country in South America with coastlines on both the Pacific Ocean and the Caribbean Sea. It is also the world\'s largest producer of emeralds.'},
+  'c-pe':{name:'Peru',flag:'🇵🇪',region:'Americas',hint:'Home of Machu Picchu and the Incas',fact:'Machu Picchu, built by the Inca Empire around 1450 AD, is one of the most visited sites in the world. Peru is also home to the Nazca Lines — giant drawings visible only from the air.'},
+  'c-ve':{name:'Venezuela',flag:'🇻🇪',region:'Americas',hint:'Northern South America, has the world\'s highest waterfall',fact:'Venezuela is home to Angel Falls — the world\'s highest uninterrupted waterfall at 979 metres. It is nearly 20 times taller than Niagara Falls!'},
+  'c-cl':{name:'Chile',flag:'🇨🇱',region:'Americas',hint:'The world\'s longest and thinnest country',fact:'Chile stretches 4,300 km from north to south but averages only 177 km in width. It contains the world\'s driest non-polar desert — the Atacama — where some areas have never had recorded rainfall.'},
+  'c-bo':{name:'Bolivia',flag:'🇧🇴',region:'Americas',hint:'Landlocked South American country with two capitals',fact:'Bolivia has two capitals — Sucre is the constitutional capital, but La Paz is the seat of government. La Paz is the highest administrative capital in the world at 3,640 metres above sea level.'},
+
+  // Oceania
+  'c-au':{name:'Australia',flag:'🇦🇺',region:'Oceania',hint:'The world\'s largest island and smallest continent',fact:'Australia is home to some of the world\'s most dangerous animals, including the box jellyfish (world\'s most venomous animal) and the saltwater crocodile (world\'s largest reptile).'},
+  'c-nz':{name:'New Zealand',flag:'🇳🇿',region:'Oceania',hint:'Two islands in the South Pacific, home of kiwis',fact:'New Zealand was the first country to give women the right to vote in 1893. Its Māori name is Aotearoa, meaning "Land of the Long White Cloud."'},
+};
+
+let region='World', qList=[], qIdx=0, score=0, best=0, answered=false;
+const TOTAL=10;
+
+// Filter countries by region
+function getPool(){
+  const all=Object.entries(COUNTRIES_DATA);
+  if(region==='World') return all;
+  return all.filter(([,d])=>d.region===region);
+}
+
+function setRegion(r,el){
+  region=r;
+  document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  startGame();
+}
+
+function startGame(){
+  score=0; qIdx=0; answered=false;
+  try{const b=localStorage.getItem('map_best');if(b)best=parseInt(b);}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('challenge').style.display='flex';
+  // Reset all countries
+  document.querySelectorAll('.country').forEach(p=>{
+    p.classList.remove('target','correct-hit','wrong-hit','revealed');
+    p.style.pointerEvents='auto';
+  });
+  let pool=getPool();
+  if(pool.length<4) pool=Object.entries(COUNTRIES_DATA);
+  qList=[...pool].sort(()=>Math.random()-.5).slice(0,TOTAL);
+  buildDots(); loadQ();
+
+  if(typeof KLZ!=='undefined'){ KLZ.markPlayed('map'); KLZ.checkTime(); KLZ.incStat('games_played'); }
+}
+
+function buildDots(){
+  const p=document.getElementById('prog'); p.innerHTML='';
+  for(let i=0;i<qList.length;i++){const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);}
+}
+
+function loadQ(){
+  answered=false;
+  const [id,data]=qList[qIdx];
+  document.getElementById('c-flag').textContent=data.flag;
+  document.getElementById('c-name').textContent=data.name;
+  document.getElementById('c-hint').textContent=data.hint;
+  document.getElementById('s-round').textContent=(qIdx+1)+'/'+qList.length;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('fact-reveal').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('dot-'+qIdx).className='prog-dot cur';
+
+  // Reset countries
+  document.querySelectorAll('.country').forEach(p=>{
+    if(!p.classList.contains('revealed')){
+      p.classList.remove('target','correct-hit','wrong-hit');
+      p.style.pointerEvents='auto';
+    }
+  });
+  // Highlight target
+  const target=document.getElementById(id);
+  if(target) target.classList.add('target');
+}
+
+// Tooltip
+const tip=document.getElementById('map-tip');
+document.querySelectorAll('.country').forEach(el=>{
+  el.addEventListener('mousemove',e=>{
+    const name=el.getAttribute('data-name');
+    tip.textContent=name;
+    const rect=document.getElementById('map-wrap').getBoundingClientRect();
+    tip.style.left=(e.clientX-rect.left+10)+'px';
+    tip.style.top=(e.clientY-rect.top-28)+'px';
+    tip.style.display='block';
+  });
+  el.addEventListener('mouseleave',()=>{ tip.style.display='none'; });
+  el.addEventListener('click',()=>{ tip.style.display='none'; handleClick(el); });
+});
+
+function handleClick(el){
+  if(answered) return;
+  const [targetId, targetData]=qList[qIdx];
+  const clickedId=el.id;
+  const ok=clickedId===targetId;
+  answered=true;
+
+  document.querySelectorAll('.country').forEach(p=>{ p.style.pointerEvents='none'; });
+
+  el.classList.remove('target');
+  el.classList.add(ok?'correct-hit':'wrong-hit');
+
+  if(!ok){
+    const t=document.getElementById(targetId);
+    if(t){ t.classList.remove('target'); t.classList.add('revealed'); }
+  }
+
+  const fb=document.getElementById('feedback');
+  if(ok){
+    score++;
+    const msgs=['Correct! 🎉','Spot on! 🌍','Brilliant! 🗺️','You found it! ⭐','Amazing! 🌟'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+qIdx).className='prog-dot good';
+  } else {
+    const clickedData=COUNTRIES_DATA[clickedId];
+    fb.textContent=`That's ${clickedData?clickedData.name:'not it'}! The highlighted country is ${targetData.name} 🗺️`;
+    fb.className='feedback bad';
+    document.getElementById('dot-'+qIdx).className='prog-dot bad';
+  }
+  document.getElementById('s-score').textContent=score;
+
+  const fr=document.getElementById('fact-reveal');
+  fr.innerHTML=`<strong>📍 ${targetData.name}:</strong> ${targetData.fact}`;
+  fr.classList.add('show');
+  document.getElementById('next-btn').style.display='block';
+
+  if(typeof KLZ!=='undefined'){
+    if(ok) KLZ.incStat('correct_total');
+    if(score===TOTAL) { KLZ.award('first_perfect'); KLZ.award('map_ace'); }
+    if(score>=8) KLZ.award('map_ace');
+  }
+}
+
+function nextQ(){
+  qIdx++;
+  if(qIdx>=qList.length){ showEnd(); return; }
+  loadQ();
+}
+
+function showEnd(){
+  document.getElementById('challenge').style.display='none';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('fact-reveal').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  if(score>best){best=score;try{localStorage.setItem('map_best',best);}catch(e){}}
+  document.getElementById('s-best').textContent=best;
+  const pct=score/qList.length;
+  document.getElementById('end-title').textContent=pct>=0.9?'Map master! 🗺️':pct>=0.6?'Great explorer! 🌍':'Keep exploring! 🧭';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`out of ${qList.length}`;
+  document.getElementById('end-stars').textContent=pct>=0.9?'⭐⭐⭐':pct>=0.6?'⭐⭐':'⭐';
+  document.getElementById('end-screen').style.display='block';
+}
+
+startGame();
+</script>
+</body>
+</html>

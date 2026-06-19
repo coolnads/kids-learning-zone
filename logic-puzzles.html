@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#fbbf24"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<title>Logic Puzzles 🧩</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#0d0d1a;color:#fff;min-height:100vh}
+  .wrap{max-width:700px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);padding:6px 14px;border-radius:99px}
+  .back:hover{background:rgba(167,139,250,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#a78bfa}
+
+  /* Mode tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .tab{flex:1;min-width:100px;padding:10px 6px;border-radius:14px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'Nunito',sans-serif;transition:all .15s;text-align:center}
+  .tab.active{background:#a78bfa;color:#0d0d1a}
+  .tab:not(.active){background:rgba(255,255,255,.07);color:#94a3b8}
+  .tab:hover:not(.active){background:rgba(255,255,255,.12)}
+
+  /* Difficulty */
+  .diff-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .diff-btn{padding:6px 18px;border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#94a3b8;transition:all .15s;font-family:'Nunito',sans-serif}
+  .diff-btn.active{background:#a78bfa;border-color:#a78bfa;color:#0d0d1a}
+  .diff-btn:hover:not(.active){background:rgba(255,255,255,.1)}
+
+  /* Score bar */
+  .score-bar{display:flex;gap:12px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:8px 18px;min-width:70px}
+  .stat .sv{font-size:22px;font-weight:900;color:#a78bfa}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Progress dots */
+  .prog{display:flex;gap:5px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#a78bfa}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* Shared card */
+  .puzzle-card{background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.2);border-radius:24px;padding:24px 20px;margin-bottom:18px}
+  .puzzle-type{font-size:11px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+  .puzzle-q{font-size:17px;font-weight:700;color:#e2e8f0;margin-bottom:20px;line-height:1.5}
+
+  /* Sequence display */
+  .sequence-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .seq-item{min-width:52px;height:52px;border-radius:12px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#c4b5fd;transition:all .3s;padding:4px}
+  .seq-item.blank{background:rgba(251,191,36,.08);border:2px dashed rgba(251,191,36,.4);color:#fbbf24}
+  .seq-item.correct-reveal{background:rgba(167,139,250,.25);border-color:#a78bfa;color:#e9d5ff}
+  .seq-arrow{font-size:18px;color:#475569}
+
+  /* Odd one out grid */
+  .odd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-bottom:8px}
+  .odd-item{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .18s;font-family:'Nunito',sans-serif}
+  .odd-item:hover:not(:disabled){background:rgba(167,139,250,.15);border-color:#a78bfa;transform:translateY(-3px)}
+  .odd-item.correct{border-color:#a78bfa;background:rgba(167,139,250,.2)}
+  .odd-item.wrong{border-color:#f87171;background:rgba(248,113,113,.1);opacity:.6}
+  .odd-item:disabled{cursor:default}
+  .odd-icon{font-size:30px;margin-bottom:4px}
+  .odd-label{font-size:11px;font-weight:700;color:#94a3b8}
+
+  /* Multiple choice options */
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:4px}
+  .opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 10px;font-size:15px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:center;font-family:'Nunito',sans-serif}
+  .opt:hover:not(:disabled){background:rgba(167,139,250,.18);border-color:#a78bfa}
+  .opt.correct{background:rgba(167,139,250,.2);border-color:#a78bfa;color:#e9d5ff}
+  .opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .opt:disabled{cursor:default}
+
+  /* Feedback */
+  .feedback{text-align:center;font-size:16px;font-weight:700;min-height:26px;margin:10px 0}
+  .feedback.good{color:#a78bfa}
+  .feedback.bad{color:#f87171}
+  .explain-box{background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);border-radius:12px;padding:12px 16px;font-size:14px;color:#ddd6fe;line-height:1.6;margin-bottom:12px;display:none}
+  .explain-box.show{display:block}
+  .explain-box strong{color:#a78bfa}
+
+  .next-btn{display:none;margin:0 auto;padding:11px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#a78bfa;color:#0d0d1a;border:none;border-radius:99px;cursor:pointer}
+  .next-btn:hover{background:#8b5cf6}
+
+  /* End screen */
+  .end-screen{display:none;text-align:center;padding:28px 0}
+  .end-screen h2{font-size:26px;font-weight:900;margin-bottom:6px}
+  .end-big{font-size:64px;font-weight:900;color:#a78bfa;line-height:1;margin:12px 0}
+  .restart-btn{padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#a78bfa;color:#0d0d1a;border:none;border-radius:99px;cursor:pointer;margin-top:14px}
+
+  @media(max-width:440px){.opts{grid-template-columns:1fr 1fr}.tabs .tab{font-size:11px;padding:8px 4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🧩 <span>Logic Puzzles</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('sequence',this)">🔢 What comes next?</button>
+    <button class="tab" onclick="setMode('odd',this)">🔍 Odd one out</button>
+    <button class="tab" onclick="setMode('pattern',this)">🔮 Pattern logic</button>
+  </div>
+
+  <div class="diff-row">
+    <button class="diff-btn active" onclick="setDiff('easy',this)">🌱 Easy</button>
+    <button class="diff-btn" onclick="setDiff('medium',this)">🌿 Medium</button>
+    <button class="diff-btn" onclick="setDiff('hard',this)">🌳 Hard</button>
+  </div>
+
+  <div class="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/10</div><div class="sl">Round</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <div class="prog" id="prog"></div>
+
+  <!-- Puzzle card -->
+  <div class="puzzle-card" id="puzzle-card">
+    <div class="puzzle-type" id="puzzle-type">What comes next?</div>
+    <div class="puzzle-q" id="puzzle-q">What number comes next in this sequence?</div>
+    <div class="sequence-row" id="sequence-row" style="display:none"></div>
+    <div class="odd-grid" id="odd-grid" style="display:none"></div>
+    <div class="opts" id="opts"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+  <div class="explain-box" id="explain-box"></div>
+  <button class="next-btn" id="next-btn" onclick="nextPuzzle()">Next puzzle ➡</button>
+
+  <!-- End screen -->
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:52px">🧠</div>
+    <h2 id="end-title">Logic master!</h2>
+    <div class="end-big" id="end-score">10</div>
+    <p style="color:#94a3b8" id="end-msg">out of 10</p>
+    <div id="end-stars" style="font-size:36px;margin:10px 0 18px"></div>
+    <button class="restart-btn" onclick="startGame()">Play again ↺</button>
+  </div>
+</div>
+
+<script src="badges.js"></script>
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const SEQUENCES = {
+  easy:[
+    {seq:[2,4,6,8,'?'],a:'10',opts:['9','10','12','11'],rule:'Add 2 each time',explain:'Each number goes up by 2. This is called counting in 2s or even numbers!'},
+    {seq:[1,2,3,4,'?'],a:'5',opts:['4','6','5','7'],rule:'Add 1',explain:'Count up by 1 each time. Simple counting — 1, 2, 3, 4, 5!'},
+    {seq:[5,10,15,20,'?'],a:'25',opts:['24','30','25','22'],rule:'Add 5',explain:'Add 5 each time — these are the 5 times table numbers!'},
+    {seq:[10,20,30,40,'?'],a:'50',opts:['45','50','60','55'],rule:'Add 10',explain:'Add 10 each time. These are the 10 times table numbers: 10, 20, 30, 40, 50!'},
+    {seq:['🔴','🔵','🔴','🔵','?'],a:'🔴',opts:['🔵','🟡','🔴','🟢'],rule:'Alternating pattern',explain:'The pattern alternates: Red, Blue, Red, Blue... so the next must be Red!'},
+    {seq:['⭐','⭐','🌙','⭐','⭐','?'],a:'🌙',opts:['⭐','🌙','☀️','💫'],rule:'Two stars then moon',explain:'The pattern is: Star, Star, Moon repeating. After two stars comes a moon!'},
+    {seq:[3,6,9,12,'?'],a:'15',opts:['13','14','15','18'],rule:'Add 3',explain:'Add 3 each time — these are the 3 times table: 3, 6, 9, 12, 15!'},
+    {seq:[100,90,80,70,'?'],a:'60',opts:['50','60','65','55'],rule:'Subtract 10',explain:'Take away 10 each time: 100, 90, 80, 70, 60. Counting backwards in 10s!'},
+    {seq:['🐱','🐱','🐶','🐱','🐱','?'],a:'🐶',opts:['🐱','🐶','🐰','🐭'],rule:'Two cats then dog',explain:'The pattern repeats every 3: Cat, Cat, Dog. After two cats comes a dog!'},
+    {seq:[1,3,5,7,'?'],a:'9',opts:['8','9','10','11'],rule:'Odd numbers — add 2',explain:'These are odd numbers! Add 2 each time: 1, 3, 5, 7, 9. Odd numbers never end in 0, 2, 4, 6, or 8.'},
+    {seq:[2,4,8,16,'?'],a:'32',opts:['24','20','32','28'],rule:'Double each time',explain:'Each number is double the one before: 2×2=4, 4×2=8, 8×2=16, 16×2=32!'},
+    {seq:['🍎','🍊','🍋','🍎','🍊','?'],a:'🍋',opts:['🍎','🍊','🍋','🍇'],rule:'Apple, Orange, Lemon repeating',explain:'The fruit pattern repeats every 3: Apple, Orange, Lemon, Apple, Orange, Lemon!'},
+  ],
+  medium:[
+    {seq:[1,4,9,16,'?'],a:'25',opts:['20','25','24','36'],rule:'Square numbers',explain:'These are square numbers: 1×1=1, 2×2=4, 3×3=9, 4×4=16, 5×5=25!'},
+    {seq:[1,1,2,3,5,'?'],a:'8',opts:['6','7','8','9'],rule:'Fibonacci — add two previous',explain:'Each number is the sum of the two before it: 1+1=2, 1+2=3, 2+3=5, 3+5=8. This is the famous Fibonacci sequence!'},
+    {seq:[2,6,18,54,'?'],a:'162',opts:['108','162','150','180'],rule:'Multiply by 3',explain:'Multiply by 3 each time: 2×3=6, 6×3=18, 18×3=54, 54×3=162!'},
+    {seq:[100,50,25,'?'],a:'12.5',opts:['12','12.5','15','10'],rule:'Divide by 2',explain:'Halve each number: 100÷2=50, 50÷2=25, 25÷2=12.5!'},
+    {seq:[3,5,8,12,17,'?'],a:'23',opts:['21','22','23','24'],rule:'Adding 2, 3, 4, 5, 6...',explain:'The gap between numbers increases by 1 each time: +2, +3, +4, +5, +6. So 17+6=23!'},
+    {seq:[64,32,16,8,'?'],a:'4',opts:['2','4','6','8'],rule:'Divide by 2',explain:'Each number is halved: 64→32→16→8→4. These are powers of 2!'},
+    {seq:[1,8,27,64,'?'],a:'125',opts:['100','120','125','128'],rule:'Cube numbers',explain:'These are cube numbers: 1³=1, 2³=8, 3³=27, 4³=64, 5³=125!'},
+    {seq:[2,3,5,7,11,'?'],a:'13',opts:['12','13','14','15'],rule:'Prime numbers',explain:'These are prime numbers — numbers only divisible by 1 and themselves: 2, 3, 5, 7, 11, 13!'},
+    {seq:['A','C','E','G','?'],a:'I',opts:['H','I','J','K'],rule:'Skip a letter',explain:'Every other letter of the alphabet: A, C, E, G, I — skipping B, D, F, H!'},
+    {seq:[5,11,23,47,'?'],a:'95',opts:['88','94','95','96'],rule:'Double then add 1',explain:'Each number is doubled then 1 is added: 5×2+1=11, 11×2+1=23, 23×2+1=47, 47×2+1=95!'},
+  ],
+  hard:[
+    {seq:[1,2,6,24,120,'?'],a:'720',opts:['360','600','720','840'],rule:'Factorial numbers',explain:'Each number is multiplied by the next counting number: 1, 1×2=2, 2×3=6, 6×4=24, 24×5=120, 120×6=720. These are called factorials!'},
+    {seq:[0,1,3,6,10,15,'?'],a:'21',opts:['18','20','21','25'],rule:'Triangle numbers — add 1 more each time',explain:'Add 1 more each time: +1, +2, +3, +4, +5, +6. These are triangle numbers — you can arrange them into triangles of dots!'},
+    {seq:[2,5,11,23,47,'?'],a:'95',opts:['91','94','95','96'],rule:'Double minus 1... actually double plus 1',explain:'Each number: multiply by 2 and add 1: 2×2+1=5, 5×2+1=11, 11×2+1=23, 23×2+1=47, 47×2+1=95!'},
+    {seq:['Z','Y','X','W','?'],a:'V',opts:['U','V','W','T'],rule:'Alphabet backwards',explain:'The alphabet going backwards: Z, Y, X, W, V. Can you recite the whole alphabet backwards?'},
+    {seq:[1,2,4,7,11,16,'?'],a:'22',opts:['20','21','22','23'],rule:'Add 1, 2, 3, 4, 5, 6',explain:'The gaps increase by 1 each time: +1, +2, +3, +4, +5, +6. So 16+6=22!'},
+    {seq:[3,7,15,31,63,'?'],a:'127',opts:['100','120','127','128'],rule:'Double then add 1',explain:'Double and add 1: 3×2+1=7, 7×2+1=15, 15×2+1=31, 31×2+1=63, 63×2+1=127!'},
+  ],
+};
+
+const ODD_ONE_OUT = {
+  easy:[
+    {items:[{i:'🐶',l:'Dog'},{i:'🐱',l:'Cat'},{i:'🐦',l:'Bird'},{i:'🚗',l:'Car'}],odd:'🚗',oddLabel:'Car',reason:'The car is the only one that is not a living animal!'},
+    {items:[{i:'🍎',l:'Apple'},{i:'🍌',l:'Banana'},{i:'🥦',l:'Broccoli'},{i:'🍊',l:'Orange'}],odd:'🥦',oddLabel:'Broccoli',reason:'Broccoli is the only vegetable — all the others are fruits!'},
+    {items:[{i:'✈️',l:'Plane'},{i:'🚀',l:'Rocket'},{i:'🚢',l:'Ship'},{i:'🚁',l:'Helicopter'}],odd:'🚢',oddLabel:'Ship',reason:'The ship travels on water — all the others fly through the air!'},
+    {items:[{i:'🔴',l:'Red'},{i:'🔵',l:'Blue'},{i:'🟡',l:'Yellow'},{i:'🟠',l:'Orange'}],odd:'🟠',oddLabel:'Orange',reason:'Red, Blue, and Yellow are primary colours. Orange is a secondary colour made by mixing red and yellow!'},
+    {items:[{i:'🌍',l:'Earth'},{i:'🌙',l:'Moon'},{i:'⭐',l:'Sun'},{i:'🪐',l:'Saturn'}],odd:'🌙',oddLabel:'Moon',reason:'The Moon is the only one that is not a planet or star — it\'s a natural satellite orbiting Earth!'},
+    {items:[{i:'🐬',l:'Dolphin'},{i:'🐟',l:'Fish'},{i:'🦈',l:'Shark'},{i:'🐙',l:'Octopus'}],odd:'🐬',oddLabel:'Dolphin',reason:'A dolphin is the only mammal in the group — it breathes air and is warm-blooded. Fish and sharks have gills. Octopuses are molluscs!'},
+    {items:[{i:'2',l:'Two'},{i:'4',l:'Four'},{i:'7',l:'Seven'},{i:'8',l:'Eight'}],odd:'7',oddLabel:'Seven',reason:'7 is the only odd number! 2, 4, and 8 are all even numbers.'},
+    {items:[{i:'🍕',l:'Pizza'},{i:'🍔',l:'Burger'},{i:'🌮',l:'Taco'},{i:'🍎',l:'Apple'}],odd:'🍎',oddLabel:'Apple',reason:'The apple is the only healthy natural food — pizza, burgers, and tacos are all junk food!'},
+    {items:[{i:'🎸',l:'Guitar'},{i:'🎻',l:'Violin'},{i:'🥁',l:'Drums'},{i:'🪕',l:'Banjo'}],odd:'🥁',oddLabel:'Drums',reason:'Drums are percussion instruments — you hit them. Guitar, violin, and banjo are all string instruments!'},
+    {items:[{i:'🟦',l:'Square'},{i:'🔺',l:'Triangle'},{i:'⭕',l:'Circle'},{i:'🔷',l:'Diamond'}],odd:'⭕',oddLabel:'Circle',reason:'The circle is the only shape with no straight edges or corners — squares, triangles, and diamonds all have straight sides!'},
+  ],
+  medium:[
+    {items:[{i:'🌍',l:'Earth'},{i:'🪐',l:'Jupiter'},{i:'☀️',l:'Sun'},{i:'♂️',l:'Mars'}],odd:'☀️',oddLabel:'Sun',reason:'The Sun is the only star — Earth, Jupiter, and Mars are all planets in our solar system!'},
+    {items:[{i:'🇫🇷',l:'France'},{i:'🇩🇪',l:'Germany'},{i:'🇯🇵',l:'Japan'},{i:'🇪🇸',l:'Spain'}],odd:'🇯🇵',oddLabel:'Japan',reason:'Japan is the only Asian country — France, Germany, and Spain are all in Europe!'},
+    {items:[{i:'3',l:'Three'},{i:'5',l:'Five'},{i:'7',l:'Seven'},{i:'9',l:'Nine'}],odd:'9',oddLabel:'Nine',reason:'9 is the only one that is NOT a prime number! 3, 5, and 7 are all prime. 9 = 3×3, so it has a factor other than 1 and itself.'},
+    {items:[{i:'🦁',l:'Lion'},{i:'🐯',l:'Tiger'},{i:'🐆',l:'Leopard'},{i:'🐘',l:'Elephant'}],odd:'🐘',oddLabel:'Elephant',reason:'The elephant is the only one that is not a big cat — lions, tigers, and leopards are all members of the cat family!'},
+    {items:[{i:'🌊',l:'Ocean'},{i:'🏞️',l:'Lake'},{i:'🏔️',l:'Mountain'},{i:'🌊',l:'River'}],odd:'🏔️',oddLabel:'Mountain',reason:'The mountain is the only one that isn\'t made of water — oceans, lakes, and rivers are all bodies of water!'},
+    {items:[{i:'📚',l:'Library'},{i:'🏫',l:'School'},{i:'🏥',l:'Hospital'},{i:'🏛️',l:'Museum'}],odd:'🏥',oddLabel:'Hospital',reason:'A hospital is the only one where the main purpose is medical treatment. Libraries, schools, and museums are all places of learning!'},
+    {items:[{i:'🦋',l:'Butterfly'},{i:'🐝',l:'Bee'},{i:'🐞',l:'Ladybird'},{i:'🕷️',l:'Spider'}],odd:'🕷️',oddLabel:'Spider',reason:'A spider is the only one that is NOT an insect — it\'s an arachnid (8 legs). Butterflies, bees, and ladybirds are all true insects with 6 legs!'},
+  ],
+  hard:[
+    {items:[{i:'16',l:'Sixteen'},{i:'25',l:'Twenty-five'},{i:'36',l:'Thirty-six'},{i:'50',l:'Fifty'}],odd:'50',oddLabel:'Fifty',reason:'50 is the only one that is NOT a square number! 16=4², 25=5², 36=6². 50 is not a perfect square.'},
+    {items:[{i:'🌑',l:'Mercury'},{i:'♀️',l:'Venus'},{i:'🔵',l:'Neptune'},{i:'🟤',l:'Mars'}],odd:'🔵',oddLabel:'Neptune',reason:'Neptune is the only outer planet (beyond the asteroid belt) — Mercury, Venus, and Mars are all inner (rocky) planets close to the Sun!'},
+    {items:[{i:'12',l:'Twelve'},{i:'18',l:'Eighteen'},{i:'24',l:'Twenty-four'},{i:'35',l:'Thirty-five'}],odd:'35',oddLabel:'Thirty-five',reason:'35 is the only odd number! 12, 18, and 24 are all even. But more specifically, 12, 18, and 24 are all divisible by 6, while 35 is not!'},
+    {items:[{i:'🧊',l:'Ice'},{i:'💧',l:'Water'},{i:'♨️',l:'Steam'},{i:'🌊',l:'Wave'}],odd:'🌊',oddLabel:'Wave',reason:'Ice, water, and steam are the three states of matter for H₂O — solid, liquid, and gas. A wave is just movement of water, not a separate state!'},
+    {items:[{i:'🌿',l:'Fern'},{i:'🌵',l:'Cactus'},{i:'🌺',l:'Flower'},{i:'🍄',l:'Mushroom'}],odd:'🍄',oddLabel:'Mushroom',reason:'A mushroom is a fungus, NOT a plant! Ferns, cacti, and flowers are all plants that photosynthesise. Mushrooms get energy by breaking down organic matter.'},
+  ],
+};
+
+const PATTERN_QS = {
+  easy:[
+    {q:'A shop has 3 red apples on each shelf. There are 4 shelves. How many apples in total?',a:'12',opts:['10','12','11','14'],explain:'3 apples × 4 shelves = 12 apples. This is multiplication!'},
+    {q:'If today is Monday, what day will it be in 3 days?',a:'Thursday',opts:['Wednesday','Thursday','Friday','Tuesday'],explain:'Monday → Tuesday → Wednesday → Thursday. Count forward 3 days!'},
+    {q:'A caterpillar takes 2 weeks to become a butterfly. How many days is that?',a:'14',opts:['12','7','14','21'],explain:'There are 7 days in a week. 2 weeks × 7 days = 14 days!'},
+    {q:'You have 20 sweets. You share them equally with 3 friends (4 people total). How many does each person get?',a:'5',opts:['4','5','6','7'],explain:'20 sweets ÷ 4 people = 5 sweets each. This is division!'},
+    {q:'There are 6 legs on an insect. How many legs on 4 insects?',a:'24',opts:['18','20','24','28'],explain:'6 legs × 4 insects = 24 legs. This is why it\'s the 6 times table!'},
+    {q:'A bookshelf has 5 rows with 8 books each. How many books total?',a:'40',opts:['35','40','45','48'],explain:'5 rows × 8 books = 40 books. Multiplication saves you from counting each one!'},
+    {q:'A snail travels 5 cm every minute. How far does it travel in 7 minutes?',a:'35 cm',opts:['30 cm','35 cm','40 cm','45 cm'],explain:'5 cm × 7 minutes = 35 cm. Speed × time = distance!'},
+    {q:'A farmer has 3 fields. Each field has 4 rows of 5 plants. How many plants in total?',a:'60',opts:['48','55','60','65'],explain:'5 plants × 4 rows = 20 plants per field. 20 × 3 fields = 60 plants!'},
+    {q:'If you save £2 every day, how many days to save £18?',a:'9',opts:['7','8','9','10'],explain:'£18 ÷ £2 per day = 9 days. Division is the reverse of multiplication!'},
+    {q:'A pentagon has 5 sides. How many sides do 6 pentagons have?',a:'30',opts:['25','28','30','35'],explain:'5 sides × 6 pentagons = 30 sides. The word "pentagon" comes from Greek "penta" meaning 5!'},
+  ],
+  medium:[
+    {q:'A train travels 60 km every hour. How far does it go in 2.5 hours?',a:'150 km',opts:['120 km','150 km','180 km','140 km'],explain:'60 km × 2.5 hours = 150 km. Half of 60 is 30, so: 120 + 30 = 150 km!'},
+    {q:'If you fold a piece of paper in half 3 times, how many layers do you have?',a:'8',opts:['6','8','9','12'],explain:'Each fold doubles the layers: 1 → 2 → 4 → 8. This is why you can\'t fold most paper more than 7 times!'},
+    {q:'A clock shows 3:00. The minute hand moves to 3:45. How many degrees has it turned?',a:'270°',opts:['180°','270°','300°','360°'],explain:'A full circle is 360°. 45 minutes = ¾ of an hour. ¾ × 360° = 270°!'},
+    {q:'If there are 52 cards in a deck and you deal them equally to 4 players, how many cards each?',a:'13',opts:['12','13','14','15'],explain:'52 ÷ 4 = 13 cards each. A standard deck has 4 suits of 13 cards!'},
+    {q:'A rectangle is 8 cm long and 5 cm wide. What is its area?',a:'40 cm²',opts:['26 cm²','40 cm²','13 cm²','56 cm²'],explain:'Area of a rectangle = length × width = 8 × 5 = 40 cm². Area is always measured in square units!'},
+    {q:'You start at number 3 and double it 4 times. What number do you reach?',a:'48',opts:['24','36','48','64'],explain:'3 → 6 → 12 → 24 → 48. Doubling four times means multiplying by 2⁴ = 16. 3 × 16 = 48!'},
+    {q:'A box of 24 chocolates is shared between 6 people. Then each person eats half theirs. How many are left per person?',a:'2',opts:['2','3','4','6'],explain:'24 ÷ 6 = 4 each. Half of 4 = 2 remaining per person. Two-step problem!'},
+    {q:'If a hexagon has 6 sides, how many sides do 7 hexagons have?',a:'42',opts:['36','40','42','48'],explain:'6 × 7 = 42. The word hexagon comes from Greek "hex" meaning 6!'},
+  ],
+  hard:[
+    {q:'A bacteria doubles every hour. If you start with 1 bacterium, how many after 10 hours?',a:'1,024',opts:['100','512','1,024','1,048'],explain:'After each hour it doubles: 1→2→4→8→16→32→64→128→256→512→1024. This is 2¹⁰ = 1,024!'},
+    {q:'The angles of a triangle always add up to how many degrees?',a:'180°',opts:['90°','180°','270°','360°'],explain:'All three angles of any triangle always add up to exactly 180°. A right angle is 90°, so a right-angled triangle has two angles that add up to 90°!'},
+    {q:'If today is Wednesday and you go forward 100 days, what day of the week is it?',a:'Friday',opts:['Wednesday','Thursday','Friday','Saturday'],explain:'100 ÷ 7 = 14 remainder 2. So go forward 2 days from Wednesday: Wednesday + 2 = Friday!'},
+    {q:'A sequence goes: 1, 11, 21, 1211, 111221... what comes next?',a:'312211',opts:['312211','211231','113211','121321'],explain:'This is the "look and say" sequence — describe what you see: "one 1" → 11, "two 1s" → 21, "one 2, one 1" → 1211, "one 1, one 2, two 1s" → 111221, "three 1s, two 2s, one 1" → 312211!'},
+    {q:'In a room of 23 people, what is the probability that two share the same birthday? (roughly)',a:'More than 50%',opts:['About 5%','About 25%','More than 50%','Nearly 100%'],explain:'This is called the Birthday Paradox! With just 23 people there is a 50%+ chance two share a birthday. With 70 people it rises to 99.9%. Our brains are bad at understanding probability!'},
+    {q:'If you write all numbers from 1 to 100, how many times does the digit 7 appear?',a:'20',opts:['10','11','20','21'],explain:'7 appears in the units place: 7, 17, 27, 37, 47, 57, 67, 77, 87, 97 (10 times). It also appears in the tens place: 70, 71, 72, 73, 74, 75, 76, 77, 78, 79 (10 times). Total = 20!'},
+  ],
+};
+
+let gameMode='sequence', diff='easy', score=0, best=0, round=0, answered=false;
+let puzzleList=[];
+const TOTAL=10;
+
+function setMode(m,el){
+  gameMode=m; document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  startGame();
+}
+function setDiff(d,el){
+  diff=d; document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active');
+  startGame();
+}
+
+function startGame(){
+  score=0; round=0; answered=false;
+  try{const b=localStorage.getItem(`logic_best_${gameMode}_${diff}`);if(b)best=parseInt(b);}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('puzzle-card').style.display='block';
+
+  const pool = gameMode==='sequence' ? (SEQUENCES[diff]||SEQUENCES.easy)
+             : gameMode==='odd'      ? (ODD_ONE_OUT[diff]||ODD_ONE_OUT.easy)
+             :                         (PATTERN_QS[diff]||PATTERN_QS.easy);
+  puzzleList=[...pool].sort(()=>Math.random()-.5).slice(0,Math.min(TOTAL,pool.length));
+
+  buildDots(); loadPuzzle();
+
+  if(typeof KLZ!=='undefined'){ KLZ.markPlayed('logic'); KLZ.checkTime(); KLZ.incStat('games_played'); }
+}
+
+function buildDots(){
+  const p=document.getElementById('prog'); p.innerHTML='';
+  for(let i=0;i<puzzleList.length;i++){const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);}
+}
+
+function loadPuzzle(){
+  answered=false;
+  const pz=puzzleList[round];
+  document.getElementById('s-round').textContent=(round+1)+'/'+puzzleList.length;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('explain-box').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+
+  // Hide all sections
+  document.getElementById('sequence-row').style.display='none';
+  document.getElementById('odd-grid').style.display='none';
+  document.getElementById('opts').innerHTML='';
+
+  if(gameMode==='sequence'){
+    document.getElementById('puzzle-type').textContent='🔢 What comes next?';
+    document.getElementById('puzzle-q').textContent='What comes next in this sequence?';
+    buildSequenceRow(pz);
+    buildOpts(pz.opts, pz.a);
+  } else if(gameMode==='odd'){
+    document.getElementById('puzzle-type').textContent='🔍 Odd one out';
+    document.getElementById('puzzle-q').textContent='Which one does NOT belong with the others?';
+    buildOddGrid(pz);
+  } else {
+    document.getElementById('puzzle-type').textContent='🔮 Pattern & logic';
+    document.getElementById('puzzle-q').textContent=pz.q;
+    buildOpts(pz.opts, pz.a);
+  }
+}
+
+function buildSequenceRow(pz){
+  const row=document.getElementById('sequence-row');
+  row.style.display='flex'; row.innerHTML='';
+  pz.seq.forEach((item,i)=>{
+    if(i>0){const arr=document.createElement('div');arr.className='seq-arrow';arr.textContent='→';row.appendChild(arr);}
+    const box=document.createElement('div');
+    box.className='seq-item'+(item==='?'?' blank':'');
+    box.id=item==='?'?'blank-box':'';
+    box.textContent=item;
+    row.appendChild(box);
+  });
+}
+
+function buildOpts(opts,correct){
+  const el=document.getElementById('opts'); el.innerHTML='';
+  [...opts].sort(()=>Math.random()-.5).forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=o;
+    b.onclick=()=>pickOpt(o,b,correct);
+    el.appendChild(b);
+  });
+}
+
+function buildOddGrid(pz){
+  const el=document.getElementById('odd-grid'); el.style.display='grid'; el.innerHTML='';
+  pz.items.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='odd-item';
+    div.innerHTML=`<div class="odd-icon">${item.i}</div><div class="odd-label">${item.l}</div>`;
+    div.onclick=()=>pickOdd(item.i,div,pz);
+    el.appendChild(div);
+  });
+}
+
+function pickOpt(val,btn,correct){
+  if(answered)return; answered=true;
+  const ok=val===correct;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===correct)b.classList.add('correct');});
+  if(ok&&gameMode==='sequence'){
+    const bb=document.getElementById('blank-box');
+    if(bb){bb.textContent=val;bb.classList.add('correct-reveal');}
+  }
+  showResult(ok, puzzleList[round].explain || puzzleList[round].rule || '');
+}
+
+function pickOdd(val,div,pz){
+  if(answered)return; answered=true;
+  const ok=val===pz.odd;
+  div.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.odd-item').forEach(d=>{d.disabled=true;d.style.pointerEvents='none';});
+  // Reveal correct
+  if(!ok) document.querySelectorAll('.odd-item').forEach(d=>{if(d.querySelector('.odd-icon').textContent===pz.odd)d.classList.add('correct');});
+  showResult(ok, pz.reason);
+}
+
+function showResult(ok, explain){
+  const fb=document.getElementById('feedback');
+  if(ok){
+    score++;
+    document.getElementById('s-score').textContent=score;
+    const msgs=['Brilliant! 🧠','Correct! 🎉','You got it! ⭐','Spot on! 💡','Logic master! 🧩'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+round).className='prog-dot good';
+    if(typeof KLZ!=='undefined') KLZ.incStat('correct_total');
+  } else {
+    fb.textContent='Not quite — here\'s why: 🤔';
+    fb.className='feedback bad';
+    document.getElementById('dot-'+round).className='prog-dot bad';
+  }
+  document.getElementById('explain-box').innerHTML=`<strong>💡 Explanation:</strong> ${explain}`;
+  document.getElementById('explain-box').classList.add('show');
+  document.getElementById('next-btn').style.display='block';
+}
+
+function nextPuzzle(){
+  round++;
+  if(round>=puzzleList.length){showEnd();return;}
+  loadPuzzle();
+}
+
+function showEnd(){
+  document.getElementById('puzzle-card').style.display='none';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('explain-box').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  try{const bk=`logic_best_${gameMode}_${diff}`;const prev=parseInt(localStorage.getItem(bk)||0);if(score>prev)localStorage.setItem(bk,score);}catch(e){}
+  const pct=score/puzzleList.length;
+  document.getElementById('end-title').textContent=pct>=0.9?'Logic master! 🧠':pct>=0.6?'Great thinker! 🧩':'Keep puzzling! 💡';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`out of ${puzzleList.length}`;
+  document.getElementById('end-stars').textContent=pct>=0.9?'⭐⭐⭐':pct>=0.6?'⭐⭐':'⭐';
+  document.getElementById('end-screen').style.display='block';
+  if(typeof KLZ!=='undefined'){
+    if(score===puzzleList.length){ KLZ.award('first_perfect'); KLZ.award('logic_ace'); }
+    if(score>=8) KLZ.award('logic_ace');
+    if(diff==='hard'&&score>=8) KLZ.award('logic_hard');
+    KLZ.incStat('games_played');
+  }
+}
+
+startGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#fbbf24"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<title>Art & Colours 🎨</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#120824;color:#fff;min-height:100vh}
+  .wrap{max-width:700px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#f472b6;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.25);padding:6px 14px;border-radius:99px}
+  .back:hover{background:rgba(244,114,182,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#f472b6}
+
+  /* Mode tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .tab{flex:1;min-width:120px;padding:11px;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:'Nunito',sans-serif;transition:all .15s;text-align:center}
+  .tab.active{background:#f472b6;color:#1a0010}
+  .tab:not(.active){background:rgba(255,255,255,.07);color:#94a3b8}
+  .tab:hover:not(.active){background:rgba(255,255,255,.12)}
+
+  /* Score bar */
+  .score-bar{display:flex;gap:12px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:8px 18px;min-width:70px}
+  .stat .sv{font-size:22px;font-weight:900;color:#f472b6}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Progress dots */
+  .prog{display:flex;gap:5px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#f472b6}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* ===== COLOUR MIXING ===== */
+  #view-mix{display:block}
+  .mix-card{background:rgba(255,255,255,.04);border:1px solid rgba(244,114,182,.18);border-radius:24px;padding:28px 22px;margin-bottom:18px;text-align:center}
+  .mix-question{font-size:17px;font-weight:700;color:#e2e8f0;margin-bottom:22px;line-height:1.5}
+  .palette-row{display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+  .color-blob{width:72px;height:72px;border-radius:50%;cursor:default;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:transform .2s;flex-shrink:0}
+  .plus-sign{font-size:28px;font-weight:900;color:#64748b}
+  .equals-sign{font-size:28px;font-weight:900;color:#64748b}
+  .result-blob{width:88px;height:88px;border-radius:50%;box-shadow:0 6px 24px rgba(0,0,0,.5);transition:background .5s;flex-shrink:0;border:3px dashed rgba(255,255,255,.2);background:#1e293b}
+  .result-blob.revealed{border-style:solid;border-color:rgba(255,255,255,.3)}
+
+  .mix-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:4px}
+  .mix-opt{border-radius:14px;padding:14px 8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;border:2px solid transparent;font-family:'Nunito',sans-serif;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .mix-opt:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+  .mix-opt.correct{border-color:#34d399!important;box-shadow:0 0 20px rgba(52,211,153,.3)!important}
+  .mix-opt.wrong{opacity:.5;border-color:#f87171!important}
+  .mix-opt:disabled{cursor:default}
+  .opt-swatch{width:36px;height:36px;border-radius:50%;flex-shrink:0}
+  .opt-label{font-size:13px;font-weight:700;color:#e2e8f0}
+
+  /* ===== COLOUR NAME QUIZ ===== */
+  #view-name{display:none}
+  .color-showcase{width:100%;height:160px;border-radius:22px;margin-bottom:18px;transition:background .4s;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+  .name-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+  .name-opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:center;font-family:'Nunito',sans-serif}
+  .name-opt:hover:not(:disabled){background:rgba(244,114,182,.18);border-color:#f472b6}
+  .name-opt.correct{background:rgba(52,211,153,.15);border-color:#34d399;color:#6ee7b7}
+  .name-opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .name-opt:disabled{cursor:default}
+
+  /* ===== RAINBOW ORDER ===== */
+  #view-rainbow{display:none}
+  .rainbow-card{background:rgba(255,255,255,.04);border:1px solid rgba(244,114,182,.18);border-radius:24px;padding:24px 20px;margin-bottom:18px}
+  .rainbow-q{font-size:17px;font-weight:700;color:#e2e8f0;margin-bottom:18px;text-align:center}
+  .rainbow-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:4px}
+  .rain-opt{border-radius:14px;padding:12px 8px;font-size:13px;font-weight:700;cursor:pointer;text-align:center;border:2px solid rgba(255,255,255,.12);font-family:'Nunito',sans-serif;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .rain-opt:hover:not(:disabled){transform:translateY(-2px)}
+  .rain-opt.correct{border-color:#34d399!important;box-shadow:0 0 16px rgba(52,211,153,.3)}
+  .rain-opt.wrong{opacity:.45;border-color:#f87171!important}
+  .rain-opt:disabled{cursor:default}
+  .rain-swatch{width:32px;height:32px;border-radius:50%}
+
+  /* Shared */
+  .feedback{text-align:center;font-size:16px;font-weight:700;min-height:26px;margin:10px 0}
+  .feedback.good{color:#34d399}
+  .feedback.bad{color:#f87171}
+  .fun-fact{background:rgba(244,114,182,.07);border:1px solid rgba(244,114,182,.18);border-radius:12px;padding:12px 16px;font-size:14px;color:#fbcfe8;line-height:1.6;margin-bottom:12px;display:none}
+  .fun-fact.show{display:block}
+  .fun-fact strong{color:#f472b6}
+
+  .next-btn{display:none;margin:0 auto;padding:11px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#f472b6;color:#1a0010;border:none;border-radius:99px;cursor:pointer}
+  .next-btn:hover{background:#ec4899}
+
+  /* End screen */
+  .end-screen{display:none;text-align:center;padding:28px 0}
+  .end-screen h2{font-size:26px;font-weight:900;margin-bottom:6px}
+  .end-big{font-size:64px;font-weight:900;color:#f472b6;line-height:1;margin:12px 0}
+  .restart-btn{padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#f472b6;color:#1a0010;border:none;border-radius:99px;cursor:pointer;margin-top:14px}
+
+  @media(max-width:420px){.name-opts{grid-template-columns:1fr}.mix-opts{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🎨 <span>Art & Colours</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('mix',this)">🎨 Mix Colours</button>
+    <button class="tab" onclick="setMode('name',this)">🌈 Name That Colour</button>
+    <button class="tab" onclick="setMode('rainbow',this)">🌦️ Rainbow Order</button>
+  </div>
+
+  <div class="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/10</div><div class="sl">Round</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <div class="prog" id="prog"></div>
+
+  <!-- COLOUR MIXING -->
+  <div id="view-mix">
+    <div class="mix-card">
+      <div class="mix-question" id="mix-q">What colour do you get when you mix these two?</div>
+      <div class="palette-row">
+        <div class="color-blob" id="blob-a" style="background:#FF0000"></div>
+        <div class="plus-sign">+</div>
+        <div class="color-blob" id="blob-b" style="background:#FFFF00"></div>
+        <div class="equals-sign">=</div>
+        <div class="result-blob" id="result-blob"></div>
+      </div>
+      <div class="mix-opts" id="mix-opts"></div>
+    </div>
+    <div class="feedback" id="mix-fb"></div>
+    <div class="fun-fact" id="mix-fact"></div>
+    <button class="next-btn" id="mix-next" onclick="nextMix()">Next ➡</button>
+  </div>
+
+  <!-- COLOUR NAME -->
+  <div id="view-name">
+    <div class="color-showcase" id="color-showcase"></div>
+    <div class="name-opts" id="name-opts"></div>
+    <div class="feedback" id="name-fb"></div>
+    <div class="fun-fact" id="name-fact"></div>
+    <button class="next-btn" id="name-next" onclick="nextName()">Next ➡</button>
+  </div>
+
+  <!-- RAINBOW ORDER -->
+  <div id="view-rainbow">
+    <div class="rainbow-card">
+      <div class="rainbow-q" id="rain-q">Loading...</div>
+      <div class="rainbow-opts" id="rain-opts"></div>
+    </div>
+    <div class="feedback" id="rain-fb"></div>
+    <div class="fun-fact" id="rain-fact"></div>
+    <button class="next-btn" id="rain-next" onclick="nextRain()">Next ➡</button>
+  </div>
+
+  <!-- End screen -->
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:52px">🎨</div>
+    <h2 id="end-title">Colour genius!</h2>
+    <div class="end-big" id="end-score">10</div>
+    <p style="color:#94a3b8" id="end-msg">out of 10</p>
+    <div id="end-stars" style="font-size:36px;margin:10px 0 18px"></div>
+    <button class="restart-btn" onclick="startGame()">Play again ↺</button>
+  </div>
+</div>
+
+<script src="badges.js"></script>
+<script>
+// ─── Data ────────────────────────────────────────────────────────────────────
+const MIX_DATA = [
+  {a:'Red',aHex:'#E8220A',b:'Yellow',bHex:'#F5C400',result:'Orange',rHex:'#F07800',opts:['Orange','Purple','Green','Brown'],fact:'Red and yellow make orange! Orange is named after the fruit — the fruit came first, and the colour was named after it in the 16th century.'},
+  {a:'Red',aHex:'#E8220A',b:'Blue',bHex:'#1A56E8',result:'Purple',rHex:'#8B14C8',opts:['Purple','Green','Brown','Orange'],fact:'Red and blue make purple! Purple was once the rarest and most expensive colour to make. Roman emperors wore purple robes to show their power.'},
+  {a:'Blue',aHex:'#1A56E8',b:'Yellow',bHex:'#F5C400',result:'Green',rHex:'#1A8C14',opts:['Green','Purple','Orange','Teal'],fact:'Blue and yellow make green! Green is the colour human eyes are most sensitive to — that\'s why night-vision goggles show everything in green.'},
+  {a:'Red',aHex:'#E8220A',b:'White',bHex:'#F0F0F0',result:'Pink',rHex:'#F5788C',opts:['Pink','Peach','Salmon','Lilac'],fact:'Red and white make pink! Pink was originally called "light red" — the word "pink" comes from a flower called a "pink," named for its jagged petal edges.'},
+  {a:'Black',aHex:'#1a1a2e',b:'White',bHex:'#F0F0F0',result:'Grey',rHex:'#888888',opts:['Grey','Beige','Silver','Cream'],fact:'Black and white make grey! There are over 50 shades of grey recognised by artists. The famous Payne\'s Grey is used by artists worldwide to darken colours without losing their richness.'},
+  {a:'Blue',aHex:'#1A56E8',b:'Green',bHex:'#1A8C14',result:'Teal',rHex:'#008080',opts:['Teal','Turquoise','Navy','Mint'],fact:'Blue and green make teal! Teal is named after a small freshwater duck whose eye patch is exactly that colour. The Egyptians used teal in their ancient paintings.'},
+  {a:'Red',aHex:'#E8220A',b:'Green',bHex:'#1A8C14',result:'Brown',rHex:'#8B4513',opts:['Brown','Olive','Maroon','Rust'],fact:'Red and green make brown! Brown is actually the most common colour in nature — soil, tree bark, and many animals are brown as camouflage.'},
+  {a:'Yellow',aHex:'#F5C400',b:'White',bHex:'#F0F0F0',result:'Cream',rHex:'#FFFDD0',opts:['Cream','Lime','Ivory','Beige'],fact:'Yellow and white make cream! Cream is named after dairy cream. It\'s a favourite colour for interiors because it makes spaces feel warm and cosy.'},
+  {a:'Orange',aHex:'#F07800',b:'Red',bHex:'#E8220A',result:'Vermillion',rHex:'#E34234',opts:['Vermillion','Magenta','Coral','Crimson'],fact:'Orange and red make vermillion! Vermillion is one of the oldest pigments used by humans — cave painters used it over 30,000 years ago. It was made from a bright red mineral called cinnabar.'},
+  {a:'Blue',aHex:'#1A56E8',b:'White',bHex:'#F0F0F0',result:'Sky Blue',rHex:'#87CEEB',opts:['Sky Blue','Turquoise','Lilac','Cobalt'],fact:'Blue and white make sky blue! The sky appears blue because of how sunlight scatters in our atmosphere — a phenomenon called Rayleigh scattering, discovered by Lord Rayleigh in 1871.'},
+  {a:'Purple',aHex:'#8B14C8',b:'Red',bHex:'#E8220A',result:'Magenta',rHex:'#FF00FF',opts:['Magenta','Maroon','Crimson','Violet'],fact:'Purple and red make magenta! Magenta doesn\'t actually exist as a wavelength of light — it\'s a colour your brain creates to fill the gap between red and violet in the spectrum.'},
+  {a:'Yellow',aHex:'#F5C400',b:'Green',bHex:'#1A8C14',result:'Lime Green',rHex:'#32CD32',opts:['Lime Green','Olive','Chartreuse','Teal'],fact:'Yellow and green make lime green! Lime green is named after the lime fruit. It\'s one of the most visible colours to the human eye, which is why some safety jackets and road signs use it.'},
+];
+
+const NAME_DATA = [
+  {hex:'#FF6B6B',name:'Coral',opts:['Coral','Salmon','Peach','Rose'],fact:'Coral is named after the marine animal coral reef. Coral reefs cover less than 1% of the ocean floor but support about 25% of all marine species!'},
+  {hex:'#4ECDC4',name:'Turquoise',opts:['Turquoise','Teal','Aqua','Cyan'],fact:'Turquoise is named after the gemstone. Ancient Egyptians, Aztecs, and Native Americans all prized turquoise jewellery. The finest turquoise comes from Iran.'},
+  {hex:'#45B7D1',name:'Cornflower Blue',opts:['Cornflower Blue','Sky Blue','Periwinkle','Powder Blue'],fact:'Cornflower blue is named after the cornflower plant. It was the favourite colour of Marie Antoinette, the last queen of France before the French Revolution.'},
+  {hex:'#96CEB4',name:'Sage Green',opts:['Sage Green','Mint','Seafoam','Moss'],fact:'Sage green is named after the herb sage. It\'s considered a calming colour and is very popular in interior design. The herb sage has been used in cooking for over 2,000 years.'},
+  {hex:'#FFEAA7',name:'Cream Yellow',opts:['Cream Yellow','Lemon','Buttercup','Ivory'],fact:'Buttercup yellow is the exact shade of a buttercup flower. Scientists discovered that buttercups reflect UV light in a way that attracts bees — a secret glow invisible to human eyes!'},
+  {hex:'#DDA0DD',name:'Plum',opts:['Plum','Lavender','Mauve','Lilac'],fact:'Plum is a dark purple named after the fruit. In ancient China, plum blossom is a symbol of perseverance and hope because it blooms in the cold of winter.'},
+  {hex:'#F7DC6F',name:'Dandelion',opts:['Dandelion','Sunflower','Goldenrod','Maize'],fact:'Dandelion yellow is named after the common wildflower. The name dandelion comes from the French "dent de lion" meaning "lion\'s tooth" because of its jagged leaves.'},
+  {hex:'#82E0AA',name:'Mint Green',opts:['Mint Green','Lime','Seafoam','Jade'],fact:'Mint green is named after the mint plant. Ancient Greeks and Romans used mint to scent their baths. The scent of mint is so refreshing it was once used to cover bad smells in medieval houses.'},
+  {hex:'#E74C3C',name:'Crimson',opts:['Crimson','Scarlet','Vermillion','Ruby'],fact:'Crimson is a deep red named after the kermes insect, which was crushed to make a very expensive red dye. For centuries, only the very wealthy could afford crimson clothing.'},
+  {hex:'#5DADE2',name:'Cobalt Blue',opts:['Cobalt Blue','Denim','Sapphire','Cerulean'],fact:'Cobalt blue is made from a mineral called cobalt. Van Gogh loved cobalt blue and used it in his famous "Starry Night." The first cobalt blue pigment was made in France around 1802.'},
+  {hex:'#F39C12',name:'Amber',opts:['Amber','Tangerine','Marigold','Saffron'],fact:'Amber is named after fossilised tree resin. Scientists have found insects preserved in amber for over 100 million years — including mosquitoes that might have bitten dinosaurs!'},
+  {hex:'#8E44AD',name:'Violet',opts:['Violet','Indigo','Amethyst','Mauve'],fact:'Violet is the last colour in the rainbow (ROYGBIV). The violet flower was Napoleon Bonaparte\'s favourite flower — his supporters wore violet flowers as a secret sign of loyalty.'},
+];
+
+const RAINBOW_QS = [
+  {q:'Which colour comes FIRST in the rainbow?',a:'Red',opts:['Red','Orange','Yellow','Violet'],fact:'Red is the first colour of the rainbow and has the longest wavelength of visible light. The word ROYGBIV helps remember the order: Red, Orange, Yellow, Green, Blue, Indigo, Violet.'},
+  {q:'What colour comes after Orange in the rainbow?',a:'Yellow',opts:['Green','Yellow','Red','Blue'],fact:'Yellow follows orange in the rainbow. Yellow is the brightest colour in the visible spectrum and is the colour most easily spotted by the human eye from a distance.'},
+  {q:'Which colour is in the MIDDLE of the rainbow?',a:'Green',opts:['Blue','Yellow','Green','Orange'],fact:'Green sits right in the middle of the rainbow. Human eyes have more receptors for green light than for any other colour — which is why we can see over 500 different shades of green.'},
+  {q:'What comes after Green in the rainbow?',a:'Blue',opts:['Indigo','Violet','Blue','Purple'],fact:'Blue follows green in the rainbow. The sky is blue because of how sunlight interacts with tiny gas molecules in our atmosphere — this is called Rayleigh scattering.'},
+  {q:'Which colour comes LAST in the rainbow?',a:'Violet',opts:['Violet','Indigo','Purple','Blue'],fact:'Violet is the last colour in the rainbow and has the shortest wavelength of visible light. Violet and purple look similar but violet is a single wavelength of light, while purple is a mix of red and blue.'},
+  {q:'How many colours are in a rainbow?',a:'7',opts:['5','6','7','8'],fact:'A rainbow has 7 colours: Red, Orange, Yellow, Green, Blue, Indigo, and Violet. You can use the name ROY G BIV to remember them in order!'},
+  {q:'What colour comes BEFORE Green in the rainbow?',a:'Yellow',opts:['Orange','Blue','Red','Yellow'],fact:'Yellow comes before green. Rainbows form when sunlight is split into its colours by raindrops, which act as tiny prisms. Each colour bends at a slightly different angle.'},
+  {q:'Which colour comes between Blue and Violet?',a:'Indigo',opts:['Purple','Indigo','Teal','Cyan'],fact:'Indigo sits between blue and violet. Indigo dye comes from the indigo plant and has been used for thousands of years. Ancient Egyptian mummies have been found wrapped in indigo-dyed cloth.'},
+  {q:'What colour is between Red and Yellow?',a:'Orange',opts:['Pink','Brown','Orange','Peach'],fact:'Orange sits between red and yellow. Orange is the only colour named after a fruit rather than the other way around. Before the word "orange" existed in English, the colour was called "yellow-red"!'},
+  {q:'Can you see a rainbow at night?',a:'Yes — moonbows!',opts:['No — never','Yes — moonbows!','Only in winter','Only near the sea'],fact:'Yes! Rainbows that appear at night are called moonbows or lunar rainbows. They form from moonlight instead of sunlight. They look white to our eyes because moonlight is too dim to trigger our colour vision.'},
+  {q:'Why do rainbows form an arch shape?',a:'Because of how light curves through drops',opts:['Because of the wind','Because of how light curves through drops','Because of gravity','Rainbows are actually full circles'],fact:'Rainbows are actually full circles! You usually see an arch because the ground blocks the lower half. From a plane or a high mountain, you can sometimes see a complete circular rainbow.'},
+  {q:'Which colours are PRIMARY colours?',a:'Red, Yellow, Blue',opts:['Red, Yellow, Blue','Red, Green, Blue','Orange, Purple, Green','Pink, White, Black'],fact:'The three primary paint colours are Red, Yellow, and Blue — they can\'t be made by mixing other colours. By mixing them you get secondary colours: orange, green, and purple.'},
+];
+
+let gameMode='mix', score=0, best=0, round=0, answered=false;
+let mixList=[], nameList=[], rainList=[];
+const TOTAL=10;
+
+function setMode(m,el){
+  gameMode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['mix','name','rainbow'].forEach(v=>document.getElementById('view-'+v).style.display='none');
+  document.getElementById('view-'+m).style.display='block';
+  startGame();
+}
+
+function startGame(){
+  score=0; round=0; answered=false;
+  try{const b=localStorage.getItem('art_best_'+gameMode);if(b)best=parseInt(b);}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('view-'+gameMode).style.display='block';
+  mixList=[...MIX_DATA].sort(()=>Math.random()-.5).slice(0,TOTAL);
+  nameList=[...NAME_DATA].sort(()=>Math.random()-.5).slice(0,TOTAL);
+  rainList=[...RAINBOW_QS].sort(()=>Math.random()-.5).slice(0,TOTAL);
+  buildDots();
+  if(gameMode==='mix') loadMix();
+  else if(gameMode==='name') loadName();
+  else loadRain();
+
+  if(typeof KLZ!=='undefined'){ KLZ.markPlayed('art'); KLZ.checkTime(); KLZ.incStat('games_played'); }
+}
+
+function buildDots(){
+  const p=document.getElementById('prog'); p.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);}
+}
+
+function updateScore(ok){
+  if(ok){ score++; document.getElementById('s-score').textContent=score; }
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('dot-'+round).className='prog-dot '+(ok?'good':'bad');
+  if(typeof KLZ!=='undefined' && ok) KLZ.incStat('correct_total');
+}
+
+function showEnd(){
+  document.getElementById('view-'+gameMode).style.display='none';
+  try{const b=localStorage.getItem('art_best_'+gameMode)||0;if(score>parseInt(b)){localStorage.setItem('art_best_'+gameMode,score);}}catch(e){}
+  document.getElementById('s-best').textContent=score>=(best||0)?score:best;
+  const pct=score/TOTAL;
+  document.getElementById('end-title').textContent=pct>=0.9?'Colour genius! 🎨':pct>=0.6?'Great artist! 🖌️':'Keep creating! 🌈';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`out of ${TOTAL}`;
+  document.getElementById('end-stars').textContent=pct>=0.9?'⭐⭐⭐':pct>=0.6?'⭐⭐':'⭐';
+  document.getElementById('end-screen').style.display='block';
+  if(typeof KLZ!=='undefined'){
+    if(score===TOTAL){ KLZ.award('first_perfect'); KLZ.award('art_ace'); }
+    if(score>=8) KLZ.award('art_ace');
+    KLZ.incStat('games_played');
+  }
+}
+
+// ── COLOUR MIXING ───────────────────────────────────────────────────────────
+function loadMix(){
+  answered=false;
+  const m=mixList[round];
+  document.getElementById('blob-a').style.background=m.aHex;
+  document.getElementById('blob-b').style.background=m.bHex;
+  document.getElementById('result-blob').style.background='#1e293b';
+  document.getElementById('result-blob').classList.remove('revealed');
+  document.getElementById('mix-q').textContent=`What colour do you get when you mix ${m.a} + ${m.b}?`;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('mix-fb').textContent='';
+  document.getElementById('mix-fb').className='feedback';
+  document.getElementById('mix-fact').classList.remove('show');
+  document.getElementById('mix-next').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+  const el=document.getElementById('mix-opts'); el.innerHTML='';
+  [...m.opts].sort(()=>Math.random()-.5).forEach(o=>{
+    const allColors={Red:'#E8220A',Yellow:'#F5C400',Blue:'#1A56E8',Orange:'#F07800',Purple:'#8B14C8',Green:'#1A8C14',Pink:'#F5788C',Grey:'#888888',Brown:'#8B4513',Teal:'#008080',Magenta:'#FF00FF','Lime Green':'#32CD32','Sky Blue':'#87CEEB',Crimson:'#E34234',Cream:'#FFFDD0',Vermillion:'#E34234',Violet:'#8B14C8',Indigo:'#4B0082'};
+    const hex=allColors[o]||m.rHex;
+    const b=document.createElement('button');
+    b.className='mix-opt';
+    b.style.background=`${hex}22`;
+    b.style.borderColor=`${hex}66`;
+    b.innerHTML=`<div class="opt-swatch" style="background:${hex}"></div><div class="opt-label">${o}</div>`;
+    b.onclick=()=>pickMix(o,b,m);
+    el.appendChild(b);
+  });
+}
+
+function pickMix(val,btn,m){
+  if(answered)return; answered=true;
+  const ok=val===m.result;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.mix-opt').forEach(b=>{b.disabled=true;});
+  if(ok){ document.getElementById('result-blob').style.background=m.rHex; document.getElementById('result-blob').classList.add('revealed'); }
+  document.getElementById('mix-fb').textContent=ok?['Right! 🎉','Spot on! 🌈','Brilliant! 🎨','Yes! ⭐'][Math.floor(Math.random()*4)]:`It makes ${m.result}! 🎨`;
+  document.getElementById('mix-fb').className='feedback '+(ok?'good':'bad');
+  document.getElementById('mix-fact').innerHTML=`<strong>🎨 Colour fact:</strong> ${m.fact}`;
+  document.getElementById('mix-fact').classList.add('show');
+  document.getElementById('mix-next').style.display='block';
+  updateScore(ok);
+}
+function nextMix(){ round++; if(round>=TOTAL){showEnd();return;} loadMix(); }
+
+// ── NAME THAT COLOUR ─────────────────────────────────────────────────────────
+function loadName(){
+  answered=false;
+  const n=nameList[round];
+  document.getElementById('color-showcase').style.background=n.hex;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('name-fb').textContent='';
+  document.getElementById('name-fb').className='feedback';
+  document.getElementById('name-fact').classList.remove('show');
+  document.getElementById('name-next').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+  const el=document.getElementById('name-opts'); el.innerHTML='';
+  [...n.opts].sort(()=>Math.random()-.5).forEach(o=>{
+    const b=document.createElement('button'); b.className='name-opt'; b.textContent=o;
+    b.onclick=()=>pickName(o,b,n); el.appendChild(b);
+  });
+}
+function pickName(val,btn,n){
+  if(answered)return; answered=true;
+  const ok=val===n.name;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.name-opt').forEach(b=>{b.disabled=true;if(b.textContent===n.name)b.classList.add('correct');});
+  document.getElementById('name-fb').textContent=ok?['Correct! 🌈','Brilliant! 🎨','Yes! ⭐','Spot on! 🌟'][Math.floor(Math.random()*4)]:`It's ${n.name}! 🎨`;
+  document.getElementById('name-fb').className='feedback '+(ok?'good':'bad');
+  document.getElementById('name-fact').innerHTML=`<strong>🖌️ Colour story:</strong> ${n.fact}`;
+  document.getElementById('name-fact').classList.add('show');
+  document.getElementById('name-next').style.display='block';
+  updateScore(ok);
+}
+function nextName(){ round++; if(round>=TOTAL){showEnd();return;} loadName(); }
+
+// ── RAINBOW ORDER ─────────────────────────────────────────────────────────────
+function loadRain(){
+  answered=false;
+  const r=rainList[round];
+  document.getElementById('rain-q').textContent=r.q;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('rain-fb').textContent='';
+  document.getElementById('rain-fb').className='feedback';
+  document.getElementById('rain-fact').classList.remove('show');
+  document.getElementById('rain-next').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+  const colorMap={'Red':'#E8220A','Orange':'#F07800','Yellow':'#F5C400','Green':'#1A8C14','Blue':'#1A56E8','Indigo':'#4B0082','Violet':'#8B14C8','7':'#fbbf24','5':'#94a3b8','6':'#94a3b8','8':'#94a3b8','Yes — moonbows!':'#a78bfa','No — never':'#64748b','Only in winter':'#64748b','Only near the sea':'#64748b','Because of how light curves through drops':'#38bdf8','Because of the wind':'#64748b','Because of gravity':'#64748b','Rainbows are actually full circles':'#64748b','Red, Yellow, Blue':'#f472b6','Red, Green, Blue':'#64748b','Orange, Purple, Green':'#64748b','Pink, White, Black':'#64748b'};
+  const el=document.getElementById('rain-opts'); el.innerHTML='';
+  [...r.opts].sort(()=>Math.random()-.5).forEach(o=>{
+    const hex=colorMap[o]||'#64748b';
+    const b=document.createElement('button');
+    b.className='rain-opt';
+    b.style.background=`${hex}18`;
+    b.style.borderColor=`${hex}55`;
+    const isColor=['Red','Orange','Yellow','Green','Blue','Indigo','Violet'].includes(o);
+    b.innerHTML=isColor?`<div class="rain-swatch" style="background:${hex}"></div><div style="color:#e2e8f0;font-size:13px;font-weight:700">${o}</div>`:`<div style="color:#e2e8f0;font-size:13px;font-weight:700;padding:4px">${o}</div>`;
+    b.onclick=()=>pickRain(o,b,r);
+    el.appendChild(b);
+  });
+}
+function pickRain(val,btn,r){
+  if(answered)return; answered=true;
+  const ok=val===r.a;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.rain-opt').forEach(b=>{b.disabled=true;});
+  document.getElementById('rain-fb').textContent=ok?['Correct! 🌈','Spot on! ⭐','Brilliant! 🌟','Yes! 🎉'][Math.floor(Math.random()*4)]:`The answer is ${r.a}! 🌈`;
+  document.getElementById('rain-fb').className='feedback '+(ok?'good':'bad');
+  document.getElementById('rain-fact').innerHTML=`<strong>🌈 Rainbow fact:</strong> ${r.fact}`;
+  document.getElementById('rain-fact').classList.add('show');
+  document.getElementById('rain-next').style.display='block';
+  updateScore(ok);
+}
+function nextRain(){ round++; if(round>=TOTAL){showEnd();return;} loadRain(); }
+
+startGame();
+</script>
+</body>
+</html>
