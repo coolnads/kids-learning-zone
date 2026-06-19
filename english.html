@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>English Games 🔤</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#0d1117;color:#fff;min-height:100vh}
+  .wrap{max-width:680px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#f472b6;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.25);padding:6px 14px;border-radius:99px;transition:background .15s}
+  .back:hover{background:rgba(244,114,182,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#f472b6}
+
+  /* Mode tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:22px}
+  .tab{flex:1;padding:12px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'Nunito',sans-serif;transition:all .15s;text-align:center}
+  .tab.active{background:#f472b6;color:#1a0010}
+  .tab:not(.active){background:rgba(255,255,255,.07);color:#94a3b8}
+  .tab:hover:not(.active){background:rgba(255,255,255,.12)}
+
+  /* Difficulty */
+  .diff-row{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+  .diff-btn{padding:6px 18px;border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#94a3b8;transition:all .15s;font-family:'Nunito',sans-serif}
+  .diff-btn.active{background:#f472b6;border-color:#f472b6;color:#1a0010}
+  .diff-btn:hover:not(.active){background:rgba(255,255,255,.1)}
+
+  /* Score bar */
+  .score-bar{display:flex;gap:12px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 18px;min-width:72px}
+  .stat .sv{font-size:24px;font-weight:900;color:#f472b6}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Progress */
+  .prog{display:flex;gap:5px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#f472b6}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* ===== SPELLING BEE ===== */
+  #view-spell{display:block}
+  .spell-card{background:rgba(255,255,255,.05);border:1px solid rgba(244,114,182,.2);border-radius:24px;padding:28px;text-align:center;margin-bottom:20px}
+  .word-category{font-size:11px;font-weight:700;color:#f472b6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+  .hint-text{font-size:16px;color:#94a3b8;margin-bottom:20px;font-style:italic;line-height:1.5}
+
+  .speak-btn{background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);color:#f472b6;font-size:16px;font-weight:900;font-family:'Nunito',sans-serif;padding:14px 32px;border-radius:99px;cursor:pointer;transition:all .2s;margin-bottom:6px;display:inline-flex;align-items:center;gap:8px}
+  .speak-btn:hover{background:rgba(244,114,182,.25)}
+  .speak-btn.speaking{background:#f472b6;color:#1a0010;animation:pulse .5s ease-in-out infinite alternate}
+  @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.04)}}
+  .speak-sub{font-size:12px;color:#475569;margin-bottom:20px}
+
+  .spell-input-wrap{display:flex;gap:10px;justify-content:center;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+  .spell-input{width:220px;height:56px;font-size:24px;font-weight:900;font-family:'Nunito',sans-serif;text-align:center;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;outline:none;transition:border-color .2s;letter-spacing:.08em}
+  .spell-input:focus{border-color:#f472b6}
+  .go-btn{padding:14px 28px;font-size:17px;font-weight:900;font-family:'Nunito',sans-serif;background:#f472b6;color:#1a0010;border:none;border-radius:99px;cursor:pointer;transition:background .15s,transform .1s}
+  .go-btn:hover{background:#ec4899;transform:scale(1.03)}
+  .go-btn:active{transform:scale(.97)}
+
+  .letter-hint{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+  .l-box{width:36px;height:42px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:rgba(255,255,255,.2);transition:all .3s}
+  .l-box.filled{color:#f472b6;border-color:rgba(244,114,182,.4);background:rgba(244,114,182,.08)}
+  .l-box.correct-letter{color:#34d399;border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+  .l-box.wrong-letter{color:#f87171;border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.08)}
+
+  /* ===== WORD SCRAMBLE ===== */
+  #view-scramble{display:none}
+  .scramble-card{background:rgba(255,255,255,.05);border:1px solid rgba(244,114,182,.2);border-radius:24px;padding:28px;text-align:center;margin-bottom:20px}
+  .scramble-label{font-size:13px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+  .scrambled-word{font-size:clamp(32px,10vw,56px);font-weight:900;color:#fbbf24;letter-spacing:.15em;margin-bottom:14px;line-height:1}
+  .scramble-hint{font-size:15px;color:#94a3b8;font-style:italic;margin-bottom:20px;line-height:1.5}
+
+  .letter-tiles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:52px;margin-bottom:14px}
+  .tile{width:44px;height:52px;border-radius:10px;background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#f472b6;cursor:pointer;transition:all .15s;user-select:none}
+  .tile:hover{background:rgba(244,114,182,.28);transform:translateY(-3px)}
+  .tile.used{opacity:0;pointer-events:none}
+
+  .answer-tiles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:52px;margin-bottom:20px}
+  .ans-tile{width:44px;height:52px;border-radius:10px;background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;cursor:pointer;transition:all .15s;user-select:none}
+  .ans-tile:hover:not(:empty){background:rgba(255,255,255,.12);transform:translateY(-2px)}
+  .ans-tile.correct-tile{border-color:#34d399;background:rgba(52,211,153,.1);color:#34d399}
+  .ans-tile.wrong-tile{border-color:#f87171;background:rgba(248,113,113,.1);color:#f87171}
+
+  .scramble-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:4px}
+  .clear-btn{padding:10px 24px;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:99px;color:#94a3b8;cursor:pointer;transition:all .15s}
+  .clear-btn:hover{background:rgba(255,255,255,.12)}
+  .check-btn{padding:10px 24px;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;background:#f472b6;color:#1a0010;border:none;border-radius:99px;cursor:pointer;transition:all .15s}
+  .check-btn:hover{background:#ec4899}
+
+  /* Shared */
+  .feedback{text-align:center;font-size:17px;font-weight:700;min-height:28px;margin:12px 0}
+  .feedback.good{color:#34d399}
+  .feedback.bad{color:#f87171}
+
+  .next-btn{display:none;margin:0 auto;padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#f472b6;color:#1a0010;border:none;border-radius:99px;cursor:pointer}
+  .next-btn:hover{background:#ec4899}
+
+  /* End */
+  .end-screen{display:none;text-align:center;padding:32px 0}
+  .end-screen h2{font-size:28px;font-weight:900;margin-bottom:6px}
+  .end-big{font-size:68px;font-weight:900;color:#f472b6;line-height:1;margin:14px 0}
+  .end-screen p{font-size:15px;color:#94a3b8;margin-bottom:20px}
+  .restart-btn{padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#f472b6;color:#1a0010;border:none;border-radius:99px;cursor:pointer}
+
+  @media(max-width:420px){.spell-input{width:160px;font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🔤 <span>English Games</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('spell',this)">🐝 Spelling Bee</button>
+    <button class="tab" onclick="setMode('scramble',this)">🔀 Word Scramble</button>
+  </div>
+
+  <div class="diff-row">
+    <button class="diff-btn active" onclick="setDiff('easy',this)">🌱 Easy</button>
+    <button class="diff-btn" onclick="setDiff('medium',this)">🌿 Medium</button>
+    <button class="diff-btn" onclick="setDiff('hard',this)">🌳 Hard</button>
+  </div>
+
+  <div class="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/10</div><div class="sl">Round</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <div class="prog" id="prog"></div>
+
+  <!-- SPELLING BEE -->
+  <div id="view-spell">
+    <div class="spell-card">
+      <div class="word-category" id="word-category">Animals</div>
+      <div class="hint-text" id="hint-text">A large animal with a trunk</div>
+      <button class="speak-btn" id="speak-btn" onclick="speakWord()">🔊 Hear the word</button>
+      <div class="speak-sub">Tap to hear the word — then type it below</div>
+      <div class="spell-input-wrap">
+        <input class="spell-input" id="spell-input" type="text" placeholder="type here" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        <button class="go-btn" onclick="checkSpell()">✓</button>
+      </div>
+      <div class="letter-hint" id="letter-hint"></div>
+    </div>
+    <div class="feedback" id="spell-feedback"></div>
+    <button class="next-btn" id="spell-next" onclick="nextSpell()">Next word ➡</button>
+  </div>
+
+  <!-- WORD SCRAMBLE -->
+  <div id="view-scramble">
+    <div class="scramble-card">
+      <div class="scramble-label">Unscramble the letters</div>
+      <div class="scrambled-word" id="scrambled-word">PHNALETE</div>
+      <div class="scramble-hint" id="scramble-hint">A large grey animal with a trunk and big ears</div>
+      <div class="letter-tiles" id="letter-tiles"></div>
+      <div class="answer-tiles" id="answer-tiles"></div>
+      <div class="scramble-btns">
+        <button class="clear-btn" onclick="clearAnswer()">↩ Clear</button>
+        <button class="check-btn" onclick="checkScramble()">Check ✓</button>
+      </div>
+    </div>
+    <div class="feedback" id="scramble-feedback"></div>
+    <button class="next-btn" id="scramble-next" onclick="nextScramble()">Next word ➡</button>
+  </div>
+
+  <!-- End screen -->
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:56px">🎓</div>
+    <h2 id="end-title">Word wizard!</h2>
+    <div class="end-big" id="end-score">10</div>
+    <p id="end-msg">out of 10</p>
+    <div id="end-stars" style="font-size:36px;margin:12px 0 20px"></div>
+    <button class="restart-btn" onclick="startGame()">Play again ↺</button>
+  </div>
+</div>
+
+<script>
+const WORDS = {
+  easy: [
+    {word:'cat',hint:'A fluffy pet that meows',category:'Animals'},
+    {word:'dog',hint:'A pet that barks and wags its tail',category:'Animals'},
+    {word:'sun',hint:'The big bright star in our sky',category:'Nature'},
+    {word:'bus',hint:'A big vehicle that carries lots of people',category:'Transport'},
+    {word:'hat',hint:'Something you wear on your head',category:'Clothes'},
+    {word:'fish',hint:'An animal that swims in water',category:'Animals'},
+    {word:'milk',hint:'A white drink that comes from cows',category:'Food'},
+    {word:'star',hint:'A tiny light you see in the night sky',category:'Nature'},
+    {word:'frog',hint:'A green animal that hops and croaks',category:'Animals'},
+    {word:'cake',hint:'A sweet treat you eat at birthdays',category:'Food'},
+    {word:'bird',hint:'An animal with feathers and wings',category:'Animals'},
+    {word:'blue',hint:'The colour of the sky',category:'Colours'},
+    {word:'book',hint:'You read pages inside one of these',category:'School'},
+    {word:'rain',hint:'Water that falls from clouds',category:'Weather'},
+    {word:'leaf',hint:'It grows on trees and falls in autumn',category:'Nature'},
+  ],
+  medium: [
+    {word:'elephant',hint:'The largest land animal, with a trunk',category:'Animals'},
+    {word:'garden',hint:'A place outside where plants and flowers grow',category:'Nature'},
+    {word:'kitchen',hint:'The room in a house where you cook food',category:'Home'},
+    {word:'library',hint:'A place where you can borrow books',category:'Places'},
+    {word:'dolphin',hint:'A clever sea mammal that loves to jump',category:'Animals'},
+    {word:'blanket',hint:'Something warm you put over yourself in bed',category:'Home'},
+    {word:'chicken',hint:'A bird that lays eggs and says "cluck"',category:'Animals'},
+    {word:'balloon',hint:'A colourful object filled with air or helium',category:'Toys'},
+    {word:'thunder',hint:'The loud noise you hear in a storm',category:'Weather'},
+    {word:'caterpillar',hint:'A fuzzy creature that turns into a butterfly',category:'Animals'},
+    {word:'umbrella',hint:'You open this to stay dry in the rain',category:'Clothes'},
+    {word:'triangle',hint:'A shape with three sides and three corners',category:'Shapes'},
+    {word:'volcano',hint:'A mountain that can shoot out hot lava',category:'Nature'},
+    {word:'calendar',hint:'Shows all the days, weeks and months of the year',category:'School'},
+    {word:'giraffe',hint:'The tallest animal in the world with a very long neck',category:'Animals'},
+  ],
+  hard: [
+    {word:'camouflage',hint:'When an animal hides by matching its background',category:'Animals'},
+    {word:'geography',hint:'The subject that studies countries, maps and the Earth',category:'School'},
+    {word:'astronaut',hint:'A person who travels into space',category:'Science'},
+    {word:'dictionary',hint:'A book that tells you what words mean',category:'School'},
+    {word:'hibernation',hint:'When animals sleep through the whole winter',category:'Animals'},
+    {word:'parliament',hint:'The place where a country\'s laws are made',category:'Government'},
+    {word:'photosynthesis',hint:'How plants make food using sunlight',category:'Science'},
+    {word:'temperature',hint:'A measure of how hot or cold something is',category:'Science'},
+    {word:'multiplication',hint:'When you times one number by another',category:'Maths'},
+    {word:'expedition',hint:'A journey taken for a special purpose or adventure',category:'Exploration'},
+    {word:'Mediterranean',hint:'A famous sea surrounded by Europe and Africa',category:'Geography'},
+    {word:'constitution',hint:'A set of rules that run a country',category:'Government'},
+    {word:'evaporation',hint:'When water turns into gas or steam when heated',category:'Science'},
+    {word:'decomposition',hint:'When dead things rot and break down naturally',category:'Science'},
+    {word:'civilisation',hint:'A large organised society of people living together',category:'History'},
+  ],
+};
+
+let gameMode='spell',diff='easy',score=0,best=0,round=0,answered=false;
+let wordList=[],currentWord='';
+const TOTAL=10;
+
+// Scramble state
+let answerArr=[],letterArr=[],tileIndicesUsed=[];
+
+function setMode(m,el){
+  gameMode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-spell').style.display=m==='spell'?'block':'none';
+  document.getElementById('view-scramble').style.display=m==='scramble'?'block':'none';
+  startGame();
+}
+
+function setDiff(d,el){
+  diff=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  startGame();
+}
+
+function startGame(){
+  score=0;round=0;answered=false;
+  const bk='english_best_'+gameMode+'_'+diff;
+  try{const b=localStorage.getItem(bk);if(b)best=parseInt(b);}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('view-spell').style.display=gameMode==='spell'?'block':'none';
+  document.getElementById('view-scramble').style.display=gameMode==='scramble'?'block':'none';
+  wordList=[...WORDS[diff]].sort(()=>Math.random()-.5).slice(0,TOTAL);
+  buildDots();
+  if(gameMode==='spell')loadSpell(); else loadScramble();
+}
+
+function buildDots(){
+  const p=document.getElementById('prog');p.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);}
+}
+
+/* ======== SPELLING BEE ======== */
+function loadSpell(){
+  answered=false;
+  const w=wordList[round];
+  currentWord=w.word;
+  document.getElementById('word-category').textContent=w.category;
+  document.getElementById('hint-text').textContent=w.hint;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('spell-feedback').textContent='';
+  document.getElementById('spell-feedback').className='feedback';
+  document.getElementById('spell-next').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+
+  const inp=document.getElementById('spell-input');
+  inp.value='';inp.disabled=false;inp.style.borderColor='';
+  inp.oninput=()=>updateLetterHint();
+  inp.onkeydown=e=>{if(e.key==='Enter'&&!answered)checkSpell();};
+  setTimeout(()=>inp.focus(),80);
+
+  // Build empty letter boxes
+  buildLetterHint('');
+  document.getElementById('speak-btn').classList.remove('speaking');
+}
+
+function buildLetterHint(typed){
+  const lh=document.getElementById('letter-hint');
+  lh.innerHTML='';
+  for(let i=0;i<currentWord.length;i++){
+    const box=document.createElement('div');
+    box.className='l-box';
+    const ch=typed[i]||'';
+    if(ch){
+      box.textContent=ch.toUpperCase();
+      box.classList.add('filled');
+    }
+    lh.appendChild(box);
+  }
+}
+
+function updateLetterHint(){
+  if(answered)return;
+  buildLetterHint(document.getElementById('spell-input').value);
+}
+
+let speaking=false;
+function speakWord(){
+  if(!window.speechSynthesis)return;
+  speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(currentWord);
+  utt.rate=0.85;utt.pitch=1;utt.lang='en-GB';
+  const btn=document.getElementById('speak-btn');
+  btn.classList.add('speaking');btn.textContent='🔊 Speaking...';
+  utt.onend=()=>{btn.classList.remove('speaking');btn.textContent='🔊 Hear the word again';};
+  speechSynthesis.speak(utt);
+}
+
+function checkSpell(){
+  if(answered)return;
+  const typed=document.getElementById('spell-input').value.trim().toLowerCase();
+  if(!typed)return;
+  answered=true;
+  document.getElementById('spell-input').disabled=true;
+  speechSynthesis.cancel();
+  document.getElementById('speak-btn').classList.remove('speaking');
+  document.getElementById('speak-btn').textContent='🔊 Hear the word';
+
+  const ok=typed===currentWord;
+  const lh=document.getElementById('letter-hint');
+  lh.innerHTML='';
+  for(let i=0;i<currentWord.length;i++){
+    const box=document.createElement('div');
+    const ch=typed[i]||'_';
+    box.textContent=ch.toUpperCase();
+    box.className='l-box filled '+(ok?'correct-letter':ch===currentWord[i]?'correct-letter':'wrong-letter');
+    lh.appendChild(box);
+  }
+
+  const fb=document.getElementById('spell-feedback');
+  if(ok){
+    score++;
+    const msgs=['Spot on! 🌟','Perfect spelling! 🎉','Brilliant! 💪','Excellent! ⭐','Amazing speller! 🐝'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+round).className='prog-dot good';
+  } else {
+    fb.textContent=`The correct spelling is: ${currentWord.toUpperCase()} 📖`;
+    fb.className='feedback bad';
+    document.getElementById('dot-'+round).className='prog-dot bad';
+  }
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('spell-next').style.display='block';
+}
+
+function nextSpell(){
+  round++;
+  if(round>=TOTAL){showEnd();return;}
+  loadSpell();
+}
+
+/* ======== WORD SCRAMBLE ======== */
+function scrambleWord(w){
+  let arr=w.split(''),sc;
+  do{sc=[...arr].sort(()=>Math.random()-.5);}while(sc.join('')===w&&w.length>1);
+  return sc;
+}
+
+function loadScramble(){
+  answered=false;
+  const w=wordList[round];
+  currentWord=w.word;
+  letterArr=scrambleWord(w.word);
+  answerArr=new Array(w.word.length).fill('');
+  tileIndicesUsed=[];
+
+  document.getElementById('scrambled-word').textContent=letterArr.join('').toUpperCase();
+  document.getElementById('scramble-hint').textContent=w.hint;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('scramble-feedback').textContent='';
+  document.getElementById('scramble-feedback').className='feedback';
+  document.getElementById('scramble-next').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+
+  renderTiles();renderAnswer();
+}
+
+function renderTiles(){
+  const el=document.getElementById('letter-tiles');
+  el.innerHTML='';
+  letterArr.forEach((ch,i)=>{
+    const t=document.createElement('div');
+    t.className='tile'+(tileIndicesUsed.includes(i)?' used':'');
+    t.textContent=ch.toUpperCase();
+    t.onclick=()=>tapTile(i);
+    t.id='tile-'+i;
+    el.appendChild(t);
+  });
+}
+
+function renderAnswer(){
+  const el=document.getElementById('answer-tiles');
+  el.innerHTML='';
+  for(let i=0;i<currentWord.length;i++){
+    const t=document.createElement('div');
+    t.className='ans-tile';
+    t.textContent=answerArr[i]?answerArr[i].toUpperCase():'';
+    if(answerArr[i])t.onclick=()=>removeLetter(i);
+    el.appendChild(t);
+  }
+}
+
+function tapTile(idx){
+  if(answered)return;
+  if(tileIndicesUsed.includes(idx))return;
+  const slot=answerArr.indexOf('');
+  if(slot===-1)return;
+  answerArr[slot]=letterArr[idx];
+  tileIndicesUsed.push(idx);
+  renderTiles();renderAnswer();
+  if(!answerArr.includes(''))autoCheck();
+}
+
+function removeLetter(slot){
+  if(answered)return;
+  const ch=answerArr[slot];
+  // find the tile index
+  for(let i=0;i<letterArr.length;i++){
+    if(tileIndicesUsed.includes(i)&&letterArr[i]===ch){
+      tileIndicesUsed.splice(tileIndicesUsed.indexOf(i),1);
+      break;
+    }
+  }
+  answerArr[slot]='';
+  renderTiles();renderAnswer();
+}
+
+function clearAnswer(){
+  if(answered)return;
+  answerArr=new Array(currentWord.length).fill('');
+  tileIndicesUsed=[];
+  renderTiles();renderAnswer();
+  document.getElementById('scramble-feedback').textContent='';
+}
+
+function autoCheck(){setTimeout(checkScramble,300);}
+
+function checkScramble(){
+  if(answered)return;
+  if(answerArr.includes(''))return;
+  answered=true;
+  const typed=answerArr.join('').toLowerCase();
+  const ok=typed===currentWord;
+
+  // Colour the answer tiles
+  const tiles=document.getElementById('answer-tiles').children;
+  for(let i=0;i<tiles.length;i++){
+    tiles[i].className='ans-tile '+(ok?'correct-tile':'wrong-tile');
+    tiles[i].onclick=null;
+  }
+  // Disable letter tiles
+  document.querySelectorAll('.tile').forEach(t=>{t.onclick=null;t.style.cursor='default';});
+
+  const fb=document.getElementById('scramble-feedback');
+  if(ok){
+    score++;
+    const msgs=['You unscrambled it! 🎉','Perfect! 🌟','Brilliant word builder! 💪','Yes! That\'s it! ⭐'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+round).className='prog-dot good';
+  } else {
+    fb.textContent=`The word was: ${currentWord.toUpperCase()} 🔤`;
+    fb.className='feedback bad';
+    document.getElementById('dot-'+round).className='prog-dot bad';
+  }
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('scramble-next').style.display='block';
+}
+
+function nextScramble(){
+  round++;
+  if(round>=TOTAL){showEnd();return;}
+  loadScramble();
+}
+
+function showEnd(){
+  document.getElementById('view-spell').style.display='none';
+  document.getElementById('view-scramble').style.display='none';
+  const bk='english_best_'+gameMode+'_'+diff;
+  if(score>best){best=score;try{localStorage.setItem(bk,best);}catch(e){}}
+  document.getElementById('s-best').textContent=best;
+  const pct=score/TOTAL;
+  document.getElementById('end-title').textContent=pct>=0.9?'Word wizard! 🧙':pct>=0.6?'Great work! 📖':'Keep reading! 🌱';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`out of ${TOTAL} words`;
+  document.getElementById('end-stars').textContent=pct>=0.9?'⭐⭐⭐':pct>=0.6?'⭐⭐':'⭐';
+  document.getElementById('end-screen').style.display='block';
+}
+
+startGame();
+</script>
+</body>
+</html>
