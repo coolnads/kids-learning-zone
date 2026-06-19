@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maths Games 🔢</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#0a1f0a;color:#fff;min-height:100vh}
+  .wrap{max-width:680px;margin:0 auto;padding:20px 16px 60px}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#34d399;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);padding:6px 14px;border-radius:99px;transition:background .15s}
+  .back:hover{background:rgba(52,211,153,.22)}
+  .page-title{font-size:22px;font-weight:900;color:#fff}
+  .page-title span{color:#34d399}
+
+  /* Mode picker */
+  .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+  .mode-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;cursor:pointer;transition:background .15s,border-color .15s,transform .15s;text-align:center}
+  .mode-card:hover{background:rgba(255,255,255,.09);transform:translateY(-2px)}
+  .mode-card.active{border-color:#34d399;background:rgba(52,211,153,.1)}
+  .mode-card .mc-icon{font-size:32px;margin-bottom:6px}
+  .mode-card .mc-label{font-size:15px;font-weight:900;color:#fff}
+  .mode-card .mc-sub{font-size:12px;color:#64748b;margin-top:2px}
+
+  /* Difficulty row */
+  .diff-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+  .diff-btn{padding:6px 18px;border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#94a3b8;transition:all .15s}
+  .diff-btn.active{background:#34d399;border-color:#34d399;color:#022c22}
+  .diff-btn:hover:not(.active){background:rgba(255,255,255,.1)}
+
+  /* Score bar */
+  .score-bar{display:flex;gap:16px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 20px;min-width:80px}
+  .stat .sv{font-size:26px;font-weight:900;color:#34d399}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+  .streak-fire{color:#fbbf24}
+
+  /* Question area */
+  .q-area{text-align:center;margin-bottom:28px}
+  .q-display{font-size:clamp(42px,12vw,72px);font-weight:900;color:#fff;margin-bottom:20px;min-height:80px;line-height:1.1}
+  .q-display .op{color:#34d399}
+
+  /* Answer input */
+  .answer-wrap{display:flex;gap:12px;justify-content:center;align-items:center;margin-bottom:16px}
+  .answer-input{width:120px;height:60px;font-size:30px;font-weight:900;font-family:'Nunito',sans-serif;text-align:center;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);border-radius:16px;color:#fff;outline:none;transition:border-color .2s}
+  .answer-input:focus{border-color:#34d399}
+  .submit-btn{padding:14px 32px;font-size:17px;font-weight:900;font-family:'Nunito',sans-serif;background:#34d399;color:#022c22;border:none;border-radius:99px;cursor:pointer;transition:background .15s,transform .1s}
+  .submit-btn:hover{background:#10b981;transform:scale(1.03)}
+  .submit-btn:active{transform:scale(.98)}
+
+  /* Multiple choice (times tables) */
+  .mc-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+  .mc-opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:18px;font-size:22px;font-weight:900;color:#e2e8f0;cursor:pointer;transition:background .15s,border-color .15s;text-align:center}
+  .mc-opt:hover:not(:disabled){background:rgba(52,211,153,.15);border-color:#34d399}
+  .mc-opt.correct{background:rgba(52,211,153,.2);border-color:#34d399;color:#6ee7b7}
+  .mc-opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .mc-opt:disabled{cursor:default}
+
+  .feedback{text-align:center;font-size:18px;font-weight:700;min-height:28px;margin-bottom:14px}
+  .feedback.good{color:#34d399}
+  .feedback.bad{color:#f87171}
+
+  .next-btn{display:none;margin:0 auto 0;padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#34d399;color:#022c22;border:none;border-radius:99px;cursor:pointer;display:none}
+  .next-btn:hover{background:#10b981}
+
+  /* Progress dots */
+  .prog{display:flex;gap:6px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#34d399}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* Times table chooser */
+  .tt-chooser{margin-bottom:20px;text-align:center}
+  .tt-chooser p{font-size:14px;color:#94a3b8;margin-bottom:10px}
+  .tt-nums{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .tt-num{width:40px;height:40px;border-radius:10px;font-size:15px;font-weight:900;font-family:'Nunito',sans-serif;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e2e8f0;cursor:pointer;transition:all .15s}
+  .tt-num.sel{background:#34d399;border-color:#34d399;color:#022c22}
+  .tt-num:hover:not(.sel){background:rgba(255,255,255,.14)}
+
+  @media(max-width:400px){.mode-grid{grid-template-columns:1fr}.mc-opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🔢 <span>Maths Games</span></div>
+  </div>
+
+  <!-- Mode picker -->
+  <div class="mode-grid" id="mode-grid">
+    <div class="mode-card active" onclick="setMode('add',this)"><div class="mc-icon">➕</div><div class="mc-label">Add</div><div class="mc-sub">+ sums</div></div>
+    <div class="mode-card" onclick="setMode('sub',this)"><div class="mc-icon">➖</div><div class="mc-label">Subtract</div><div class="mc-sub">− sums</div></div>
+    <div class="mode-card" onclick="setMode('mul',this)"><div class="mc-icon">✖️</div><div class="mc-label">Multiply</div><div class="mc-sub">× sums</div></div>
+    <div class="mode-card" onclick="setMode('tt',this)"><div class="mc-icon">📋</div><div class="mc-label">Times Tables</div><div class="mc-sub">pick your table</div></div>
+  </div>
+
+  <!-- Difficulty -->
+  <div class="diff-row" id="diff-row">
+    <button class="diff-btn active" onclick="setDiff('easy',this)">🐣 Easy</button>
+    <button class="diff-btn" onclick="setDiff('medium',this)">🦊 Medium</button>
+    <button class="diff-btn" onclick="setDiff('hard',this)">🦁 Hard</button>
+  </div>
+
+  <!-- Times table chooser (hidden unless tt mode) -->
+  <div class="tt-chooser" id="tt-chooser" style="display:none">
+    <p>Pick a times table to practise</p>
+    <div class="tt-nums" id="tt-nums"></div>
+  </div>
+
+  <!-- Score bar -->
+  <div class="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-streak">0 <span class="streak-fire">🔥</span></div><div class="sl">Streak</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/10</div><div class="sl">Round</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <!-- Progress dots -->
+  <div class="prog" id="prog"></div>
+
+  <!-- Question -->
+  <div class="q-area">
+    <div class="q-display" id="q-display">3 <span class="op">+</span> 4 = ?</div>
+
+    <!-- Type-in answer (add/sub/mul) -->
+    <div class="answer-wrap" id="ans-wrap">
+      <input class="answer-input" id="ans-input" type="number" inputmode="numeric" placeholder="?" autocomplete="off"/>
+      <button class="submit-btn" onclick="submitAns()">Go ✓</button>
+    </div>
+
+    <!-- Multiple choice (times tables) -->
+    <div class="mc-opts" id="mc-opts" style="display:none"></div>
+
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()" style="display:none">Next ➡</button>
+  </div>
+
+  <!-- End screen (hidden by default, shown via JS) -->
+  <div id="end-wrap" style="display:none;text-align:center;padding:24px 0">
+    <div style="font-size:60px">🏆</div>
+    <h2 style="font-size:28px;font-weight:900;margin:12px 0 6px" id="end-title">Well done!</h2>
+    <div style="font-size:68px;font-weight:900;color:#34d399;line-height:1;margin:12px 0" id="end-score">10</div>
+    <p style="color:#94a3b8;margin-bottom:24px" id="end-msg">out of 10</p>
+    <button class="submit-btn" onclick="startGame()">Play again ↺</button>
+  </div>
+
+</div>
+
+<script>
+let mode='add',diff='easy',ttTable=2;
+let score=0,streak=0,best=0,round=0,answered=false;
+let a=0,b=0,correctAns=0;
+const TOTAL=10;
+
+function setMode(m,el){
+  mode=m;
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tt-chooser').style.display=m==='tt'?'block':'none';
+  startGame();
+}
+
+function setDiff(d,el){
+  diff=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  startGame();
+}
+
+// Build tt chooser
+const ttNums=document.getElementById('tt-nums');
+for(let i=1;i<=12;i++){
+  const b=document.createElement('button');
+  b.className='tt-num'+(i===2?' sel':'');
+  b.textContent=i;
+  b.onclick=()=>{
+    ttTable=i;
+    document.querySelectorAll('.tt-num').forEach(n=>n.classList.remove('sel'));
+    b.classList.add('sel');
+    startGame();
+  };
+  ttNums.appendChild(b);
+}
+
+function genQ(){
+  const ranges={easy:[1,10],medium:[5,25],hard:[10,50]};
+  const [lo,hi]=ranges[diff];
+  const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  if(mode==='add'){a=rnd(lo,hi);b=rnd(lo,hi);correctAns=a+b;return `${a} + ${b}`}
+  if(mode==='sub'){a=rnd(lo,hi);b=rnd(1,a);correctAns=a-b;return `${a} − ${b}`}
+  if(mode==='mul'){a=rnd(2,hi>10?10:hi);b=rnd(2,10);correctAns=a*b;return `${a} × ${b}`}
+  if(mode==='tt'){a=ttTable;b=rnd(1,12);correctAns=a*b;return `${a} × ${b}`}
+}
+
+function startGame(){
+  score=0;streak=0;round=0;answered=false;
+  try{const bk=`maths_best_${mode}`;const bv=localStorage.getItem(bk);if(bv){best=parseInt(bv);}}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-wrap').style.display='none';
+  document.getElementById('q-area') && (document.querySelector('.q-area').style.display='block');
+  buildDots();
+  loadQ();
+}
+
+function buildDots(){
+  const p=document.getElementById('prog');p.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);}
+}
+
+function loadQ(){
+  answered=false;
+  const qStr=genQ();
+  const op=qStr.includes('+')?'+':qStr.includes('−')?'−':'×';
+  const parts=qStr.split(/[+−×]/);
+  document.getElementById('q-display').innerHTML=`${parts[0].trim()} <span class="op">${op}</span> ${parts[1]?parts[1].trim():''} <span style="color:#64748b">= ?</span>`;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('s-streak').innerHTML=`${streak} <span class="streak-fire">🔥</span>`;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+
+  if(mode==='tt'){
+    document.getElementById('ans-wrap').style.display='none';
+    document.getElementById('mc-opts').style.display='grid';
+    buildMCOpts();
+  } else {
+    document.getElementById('ans-wrap').style.display='flex';
+    document.getElementById('mc-opts').style.display='none';
+    const inp=document.getElementById('ans-input');
+    inp.value='';
+    setTimeout(()=>inp.focus(),100);
+  }
+}
+
+function buildMCOpts(){
+  const opts=new Set([correctAns]);
+  while(opts.size<4){const wrong=correctAns+Math.floor(Math.random()*10)-5;if(wrong>0&&wrong!==correctAns)opts.add(wrong);}
+  const shuffled=[...opts].sort(()=>Math.random()-.5);
+  const el=document.getElementById('mc-opts');
+  el.innerHTML='';
+  shuffled.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='mc-opt';b.textContent=o;
+    b.onclick=()=>checkAns(o,b);
+    el.appendChild(b);
+  });
+}
+
+function submitAns(){
+  const v=parseInt(document.getElementById('ans-input').value);
+  if(isNaN(v))return;
+  checkAns(v,null);
+}
+
+document.getElementById('ans-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitAns();});
+
+function checkAns(val,btn){
+  if(answered)return;
+  answered=true;
+  const ok=val===correctAns;
+  const fb=document.getElementById('feedback');
+  if(btn){
+    btn.classList.add(ok?'correct':'wrong');
+    document.querySelectorAll('.mc-opt').forEach(b=>{b.disabled=true;if(parseInt(b.textContent)===correctAns)b.classList.add('correct');});
+  } else {
+    document.getElementById('ans-input').disabled=true;
+    document.getElementById('ans-input').style.borderColor=ok?'#34d399':'#f87171';
+  }
+  if(ok){
+    score++;streak++;
+    const msgs=['Brilliant! 🌟','Perfect! 🎉','Correct! 🥳','Amazing! 💪','Super! ⭐'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+round).className='prog-dot good';
+  } else {
+    streak=0;
+    fb.textContent=`The answer was ${correctAns} 🤔`;
+    fb.className='feedback bad';
+    document.getElementById('dot-'+round).className='prog-dot bad';
+  }
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('s-streak').innerHTML=`${streak} <span class="streak-fire">🔥</span>`;
+  document.getElementById('next-btn').style.display='block';
+}
+
+function nextQ(){
+  round++;
+  if(round>=TOTAL){showEnd();return;}
+  loadQ();
+}
+
+function showEnd(){
+  document.querySelector('.q-area').style.display='none';
+  const bk=`maths_best_${mode}`;
+  if(score>best){best=score;try{localStorage.setItem(bk,best);}catch(e){}}
+  try{localStorage.setItem('maths_best',best);}catch(e){}
+  document.getElementById('s-best').textContent=best;
+  const pct=score/TOTAL;
+  document.getElementById('end-title').textContent=pct>=0.9?'Maths wizard! 🧙':pct>=0.6?'Great work! 💪':'Keep practising! 🌱';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`You scored ${score} out of ${TOTAL}`;
+  document.getElementById('end-wrap').style.display='block';
+}
+
+try{const b=localStorage.getItem(`maths_best_${mode}`);if(b){best=parseInt(b);document.getElementById('s-best').textContent=best;}}catch(e){}
+startGame();
+</script>
+</body>
+</html>
