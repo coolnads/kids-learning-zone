@@ -19,6 +19,7 @@ const KLZ_BADGES = [
   // ── Geography ─────────────────────────────────────────────────
   {id:'geo_globe',     icon:'🌐', name:'Globe Trotter',   desc:'Score 8+ in Geography',                       secret:false},
   {id:'geo_continents',icon:'🗺️', name:'Continent Hopper',desc:'Play Geography on 3 different continents',    secret:false},
+  {id:'map_ace',       icon:'📍', name:'Map Master',      desc:'Score 8+ on the Map Quiz',                    secret:false},
 
   // ── History ───────────────────────────────────────────────────
   {id:'hist_clue1',    icon:'🕵️', name:'Sharp Mind',      desc:'Guess a history figure on the first clue',    secret:false},
@@ -30,6 +31,20 @@ const KLZ_BADGES = [
 
   // ── Food game ─────────────────────────────────────────────────
   {id:'food_perfect',  icon:'🥦', name:'Health Hero',     desc:'Score 10/10 on the Healthy Food game',        secret:false},
+
+  // ── Art & Colours ────────────────────────────────────────────
+  {id:'art_ace',       icon:'🎨', name:'Color Maestro',   desc:'Score 8+ in Art & Colours',                   secret:false},
+
+  // ── Logic Puzzles ────────────────────────────────────────────
+  {id:'logic_ace',     icon:'🧠', name:'Puzzle Pro',      desc:'Score 8+ in Logic Puzzles',                   secret:false},
+  {id:'logic_hard',    icon:'🔮', name:'Brain Genius',    desc:'Score 8+ on Logic Puzzles Hard mode',         secret:false},
+
+  // ── Reading ───────────────────────────────────────────────────
+  {id:'reading_ace',   icon:'📚', name:'Bookworm',        desc:'Score 85%+ in Reading Corner',                secret:false},
+
+  // ── Science Experiments ──────────────────────────────────────
+  {id:'first_experiment', icon:'🧪', name:'Young Scientist', desc:'Complete your first home experiment',      secret:false},
+  {id:'mad_scientist', icon:'⚗️', name:'Mad Scientist',   desc:'Complete all 8 science experiments',          secret:false},
 
   // ── Secret / fun ─────────────────────────────────────────────
   {id:'night_owl',     icon:'🦉', name:'Night Owl',       desc:'Play after 8pm',                              secret:true},
@@ -83,8 +98,8 @@ const KLZ = {
     const played = this._get('played') || [];
     if(!played.includes(subject)){ played.push(subject); this._set('played',played); }
     this.award('first_game');
-    // All subjects: space, maths, geo, history, english, science, food
-    const all=['space','maths','geo','history','english','science','food'];
+    // All subjects
+    const all=['space','maths','geo','history','english','science','food','map','art','logic','reading'];
     if(all.every(s=>played.includes(s))) this.award('all_subjects');
   },
 
