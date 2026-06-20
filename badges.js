@@ -46,6 +46,11 @@ const KLZ_BADGES = [
   {id:'first_experiment', icon:'🧪', name:'Young Scientist', desc:'Complete your first home experiment',      secret:false},
   {id:'mad_scientist', icon:'⚗️', name:'Mad Scientist',   desc:'Complete all 8 science experiments',          secret:false},
 
+  // ── Aviation ──────────────────────────────────────────────────
+  {id:'logo_ace',      icon:'🛩️', name:'Logo Legend',     desc:'Score 10+ on Airline Logo Quiz',               secret:false},
+  {id:'plane_spotter', icon:'🛫', name:'Plane Spotter',   desc:'Score 10+ on Aircraft Spotter',                secret:false},
+  {id:'aviation_scholar', icon:'✈️', name:'Aviation Scholar', desc:'Read all 5 How Flight Works topics',       secret:false},
+
   // ── Secret / fun ─────────────────────────────────────────────
   {id:'night_owl',     icon:'🦉', name:'Night Owl',       desc:'Play after 8pm',                              secret:true},
   {id:'early_bird',    icon:'🌅', name:'Early Bird',      desc:'Play before 7am',                             secret:true},
@@ -99,7 +104,7 @@ const KLZ = {
     if(!played.includes(subject)){ played.push(subject); this._set('played',played); }
     this.award('first_game');
     // All subjects
-    const all=['space','maths','geo','history','english','science','food','map','art','logic','reading'];
+    const all=['space','maths','geo','history','english','science','food','map','art','logic','reading','aviation'];
     if(all.every(s=>played.includes(s))) this.award('all_subjects');
   },
 
