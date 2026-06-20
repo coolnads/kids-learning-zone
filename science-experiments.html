@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#fbbf24"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<title>Science Experiments 🧪</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#04130f;color:#fff;min-height:100vh}
+  .wrap{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#2dd4bf;background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.25);padding:6px 14px;border-radius:99px}
+  .back:hover{background:rgba(45,212,191,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#2dd4bf}
+
+  .intro{font-size:14px;color:#94a3b8;line-height:1.6;margin-bottom:22px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.15);border-radius:14px;padding:14px 18px}
+  .intro strong{color:#2dd4bf}
+
+  /* Grid of experiment cards */
+  .exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px}
+  .exp-card{background:rgba(255,255,255,.04);border:1px solid rgba(45,212,191,.18);border-radius:20px;padding:20px;cursor:pointer;transition:all .18s}
+  .exp-card:hover{transform:translateY(-4px);border-color:#2dd4bf;box-shadow:0 8px 28px rgba(45,212,191,.12)}
+  .exp-card.done{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.06)}
+  .exp-icon{font-size:38px;margin-bottom:10px}
+  .exp-title{font-size:16px;font-weight:900;color:#fff;margin-bottom:6px}
+  .exp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .exp-tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.08);color:#94a3b8}
+  .exp-tag.time{color:#fbbf24;background:rgba(251,191,36,.1)}
+  .exp-tag.mess{color:#f87171;background:rgba(248,113,113,.1)}
+  .exp-tag.easy{color:#34d399;background:rgba(52,211,153,.1)}
+  .exp-desc{font-size:13px;color:#94a3b8;line-height:1.5}
+  .exp-done-badge{font-size:11px;font-weight:700;color:#34d399;margin-top:8px}
+
+  /* Detail view */
+  #detail-view{display:none}
+  .detail-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#2dd4bf;background:none;border:none;cursor:pointer;margin-bottom:18px;font-family:'Nunito',sans-serif;padding:0}
+  .detail-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+  .detail-icon{font-size:48px}
+  .detail-title{font-size:24px;font-weight:900;color:#fff;margin-bottom:4px}
+  .detail-meta{display:flex;gap:8px;flex-wrap:wrap}
+
+  .section-block{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:20px;margin-bottom:16px}
+  .section-title{font-size:13px;font-weight:700;color:#2dd4bf;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+  .need-list{list-style:none}
+  .need-list li{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:15px;color:#e2e8f0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .need-list li:last-child{border-bottom:none}
+  .need-list li::before{content:'•';color:#2dd4bf;font-size:20px;line-height:0}
+
+  .step-list{counter-reset:step}
+  .step-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .step-item:last-child{border-bottom:none}
+  .step-num{counter-increment:step;width:30px;height:30px;border-radius:50%;background:rgba(45,212,191,.15);border:1px solid rgba(45,212,191,.3);color:#2dd4bf;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .step-num::before{content:counter(step)}
+  .step-text{font-size:15px;color:#e2e8f0;line-height:1.6;padding-top:4px}
+
+  .why-box{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:16px 18px;font-size:14px;color:#fde68a;line-height:1.7}
+  .why-box strong{color:#fbbf24}
+
+  .safety-box{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:14px;padding:14px 18px;font-size:13px;color:#fecaca;line-height:1.6;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start}
+  .safety-box .si{font-size:20px;flex-shrink:0}
+
+  .complete-btn{display:block;width:100%;padding:14px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#2dd4bf;color:#04130f;border:none;border-radius:99px;cursor:pointer;margin-top:8px;transition:background .15s}
+  .complete-btn:hover{background:#14b8a6}
+  .complete-btn.done{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3);cursor:default}
+
+  /* Stats strip */
+  .stats-strip{display:flex;gap:12px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:8px 18px;min-width:80px}
+  .stat .sv{font-size:22px;font-weight:900;color:#2dd4bf}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">🧪 <span>Science Experiments</span></div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat"><div class="sv" id="s-done">0</div><div class="sl">Completed</div></div>
+    <div class="stat"><div class="sv" id="s-total">8</div><div class="sl">Total</div></div>
+  </div>
+
+  <!-- Grid view -->
+  <div id="grid-view">
+    <div class="intro">🔬 <strong>Fun experiments you can do at home!</strong> Always ask a grown-up to help, especially with anything hot, sharp, or messy. Tap any card to see the full instructions.</div>
+    <div class="exp-grid" id="exp-grid"></div>
+  </div>
+
+  <!-- Detail view -->
+  <div id="detail-view">
+    <button class="detail-back" onclick="showGrid()">← Back to all experiments</button>
+    <div class="detail-header">
+      <div class="detail-icon" id="d-icon">🌋</div>
+      <div>
+        <div class="detail-title" id="d-title">Volcano Eruption</div>
+        <div class="detail-meta" id="d-meta"></div>
+      </div>
+    </div>
+
+    <div class="safety-box">
+      <div class="si">👨‍👩‍👧</div>
+      <div><strong style="color:#fca5a5">Ask a grown-up first!</strong> <span id="d-safety">Get an adult to help you with this experiment.</span></div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-title">🛒 What you'll need</div>
+      <ul class="need-list" id="d-needs"></ul>
+    </div>
+
+    <div class="section-block">
+      <div class="section-title">📋 Steps to follow</div>
+      <div class="step-list" id="d-steps"></div>
+    </div>
+
+    <div class="section-block">
+      <div class="why-box" id="d-why"></div>
+    </div>
+
+    <button class="complete-btn" id="complete-btn" onclick="markComplete()">✓ I did this experiment!</button>
+  </div>
+</div>
+
+<script src="badges.js"></script>
+<script>
+const EXPERIMENTS = [
+  {
+    id:'volcano', icon:'🌋', title:'Baking Soda Volcano',
+    time:'15 mins', mess:'Messy!', diff:'Easy',
+    desc:'Build an erupting volcano using a kitchen chemical reaction.',
+    safety:'Do this outside or on a tray — it WILL bubble over and make a mess!',
+    needs:['Baking soda (2 tablespoons)','Vinegar (half a cup)','A small bottle or cup','Red food colouring (optional)','A tray or outdoor space','Modelling clay or mud to build a volcano shape (optional)'],
+    steps:[
+      'If you want a real volcano shape, mould clay or mud around the bottle, leaving the top open.',
+      'Place the bottle on a tray (this gets messy — trust us!).',
+      'Add 2 tablespoons of baking soda into the bottle.',
+      'Add a few drops of red food colouring if you want lava-coloured foam.',
+      'Pour in the vinegar quickly and step back — watch it erupt!',
+    ],
+    why:'Baking soda is a base and vinegar is an acid. When they mix, they react and release carbon dioxide gas — the same gas that makes fizzy drinks bubble! The gas escapes so fast it pushes the liquid up and out, just like a real volcano pushes out lava.'
+  },
+  {
+    id:'rainbow_jar', icon:'🌈', title:'Rainbow Density Jar',
+    time:'20 mins', mess:'A little messy', diff:'Medium',
+    desc:'Stack liquids on top of each other to make a rainbow that never mixes.',
+    safety:'Be careful pouring — go slowly and ask for help holding the jar steady.',
+    needs:['A tall clear glass or jar','Honey','Washing up liquid (dish soap)','Water (coloured with food colouring)','Vegetable oil','Rubbing alcohol (coloured) — adult to provide'],
+    steps:[
+      'Pour honey into the bottom of the jar — go slowly so it doesn\'t splash up the sides.',
+      'Very gently pour washing up liquid on top of the honey, pouring down the side of the jar.',
+      'Slowly pour in coloured water next, again down the side.',
+      'Gently add vegetable oil, then finally the coloured rubbing alcohol on top.',
+      'Step back and admire your rainbow of layers that don\'t mix!',
+    ],
+    why:'Every liquid has a different density — basically how "heavy" it is for its size. Honey is the densest so it sinks to the bottom, while rubbing alcohol is the lightest so it floats on top. They don\'t mix because of these different densities, just like oil and water naturally separate!'
+  },
+  {
+    id:'balloon_static', icon:'🎈', title:'Static Electricity Balloon',
+    time:'5 mins', mess:'No mess', diff:'Easy',
+    desc:'Make a balloon stick to the wall using invisible static electricity.',
+    safety:'Totally safe — no grown-up needed, but it\'s more fun together!',
+    needs:['A balloon','Your hair (or a wool jumper)','A wall'],
+    steps:[
+      'Blow up the balloon and tie it.',
+      'Rub the balloon on your hair (or a wool jumper) for about 20 seconds.',
+      'Quickly hold the balloon near the wall — don\'t touch it yet!',
+      'Let go gently and watch it stick to the wall by itself!',
+      'Try it on different surfaces — does it stick to wood? Metal? See what works best.',
+    ],
+    why:'Rubbing the balloon on your hair moves tiny invisible particles called electrons from your hair onto the balloon. This gives the balloon a negative electric charge. The wall has no charge, so the balloon is attracted to it — this invisible pulling force is called static electricity!'
+  },
+  {
+    id:'egg_float', icon:'🥚', title:'The Floating Egg',
+    time:'10 mins', mess:'A little messy', diff:'Easy',
+    desc:'Make an egg float in water using nothing but salt.',
+    safety:'Safe experiment — just be careful with the raw egg, it can break!',
+    needs:['2 tall glasses','Water','Salt (about 6 tablespoons)','A raw egg','A spoon for stirring'],
+    steps:[
+      'Fill both glasses about ¾ full with water.',
+      'In one glass, stir in about 6 tablespoons of salt until it dissolves.',
+      'Gently lower the egg into the glass of plain water — it should sink.',
+      'Now gently lower the same egg into the salty water — watch it float!',
+      'For extra fun, mix half salty and half plain water in one glass and watch the egg float in the middle!',
+    ],
+    why:'Salt water is denser (heavier for its size) than plain water. An egg is denser than plain water, so it sinks. But the egg is LESS dense than salt water, so the salty water pushes it up and it floats! This is the same reason it\'s easier to float in the sea than in a swimming pool.'
+  },
+  {
+    id:'invisible_ink', icon:'🍋', title:'Lemon Invisible Ink',
+    time:'25 mins', mess:'A little messy', diff:'Medium',
+    desc:'Write a secret message that only appears with heat.',
+    safety:'Adult must help with the heat source (iron, lamp, or hairdryer) — never use an open flame.',
+    needs:['Half a lemon (squeezed for juice)','A small bowl','A cotton bud or paintbrush','White paper','A lamp, iron (adult only), or hairdryer on hot'],
+    steps:[
+      'Squeeze lemon juice into a small bowl.',
+      'Dip a cotton bud or paintbrush into the juice.',
+      'Write a secret message or draw a picture on the white paper — it will be invisible once dry!',
+      'Let it dry completely for about 10 minutes.',
+      'With an adult, hold the paper near heat (an iron on low, a lamp, or hairdryer) until the message magically appears in brown!',
+    ],
+    why:'Lemon juice is slightly acidic and weakens the paper fibres where you write. When you heat the paper, the weakened parts burn (oxidise) faster than the rest of the paper, turning brown before the surrounding paper does — revealing your secret message!'
+  },
+  {
+    id:'walking_water', icon:'💧', title:'Walking Water Rainbow',
+    time:'Overnight (10 mins to set up)', mess:'A little messy', diff:'Easy',
+    desc:'Watch coloured water magically "walk" between cups overnight.',
+    safety:'Safe experiment, but food colouring can stain — wear old clothes!',
+    needs:['7 clear plastic cups','Paper towels (kitchen roll)','Water','Red, yellow, and blue food colouring'],
+    steps:[
+      'Line up 7 cups in a row. Fill cups 1, 3, 5, and 7 with water.',
+      'Add red food colouring to cup 1, yellow to cup 3, and blue to cup 5 (leave 7 empty of colour but full of water for now, or use it for purple).',
+      'Fold paper towels into strips and place one end in a full cup and the other end in an empty cup next to it, like a bridge.',
+      'Repeat for all the cups so each connects to its neighbour.',
+      'Leave it overnight and check in the morning — the colours will have "walked" through the paper and mixed in the empty cups, making new colours like orange, green, and purple!',
+    ],
+    why:'Paper towels are made of tiny fibres with microscopic gaps. Water travels up through these gaps by a process called capillary action — the same way plants pull water up from their roots to their leaves! As the water moves, it carries the colour with it, slowly filling the empty cups and mixing to create new colours.'
+  },
+  {
+    id:'milk_fireworks', icon:'🎆', title:'Magic Milk Fireworks',
+    time:'10 mins', mess:'A little messy', diff:'Easy',
+    desc:'Watch colours explode and swirl in milk like underwater fireworks.',
+    safety:'Safe and mess-free if done over a tray. Don\'t drink the milk afterwards!',
+    needs:['A shallow dish or plate','Whole milk (full-fat works best)','Food colouring (a few different colours)','Washing up liquid (dish soap)','A cotton bud'],
+    steps:[
+      'Pour milk into the shallow dish, just enough to cover the bottom.',
+      'Add a few drops of different food colourings around the milk — don\'t stir!',
+      'Dip a cotton bud into washing up liquid.',
+      'Touch the soapy cotton bud gently to the middle of the milk and watch the colours burst and swirl like fireworks!',
+      'Try touching different spots to make new bursts of colour.',
+    ],
+    why:'Milk contains tiny droplets of fat. Washing up liquid is brilliant at breaking apart fat (that\'s how it cleans greasy dishes!). When the soap touches the milk, it races around grabbing fat molecules, and this rushing movement pushes the food colouring around, creating the swirling firework effect.'
+  },
+  {
+    id:'paper_bridge', icon:'🌉', title:'Strongest Paper Bridge',
+    time:'15 mins', mess:'No mess', diff:'Medium',
+    desc:'Discover how folding paper can make it strong enough to hold weight.',
+    safety:'Completely safe — no grown-up needed, but great to do together!',
+    needs:['A few sheets of A4 paper','Two stacks of books (same height)','Small objects to test weight (coins, toy cars, etc.)'],
+    steps:[
+      'Place the two stacks of books about 15cm apart.',
+      'Lay a flat sheet of paper across the gap like a bridge. Try placing a coin on it — it will probably sag and the coin falls through!',
+      'Now fold a new sheet of paper into a zig-zag (accordion) shape.',
+      'Place your folded bridge across the same gap.',
+      'Add coins one at a time and count how many the folded bridge can hold compared to the flat one!',
+    ],
+    why:'A flat piece of paper bends easily because all its strength is spread out flat. But when you fold it into a zig-zag, you create many small triangles. Triangles are the strongest shape in engineering — they don\'t bend or collapse easily. This is the same trick used in real bridges, roofs, and even cardboard boxes!'
+  },
+];
+
+function buildGrid(){
+  const completed = getCompleted();
+  const grid = document.getElementById('exp-grid');
+  grid.innerHTML='';
+  EXPERIMENTS.forEach(exp=>{
+    const done = completed.includes(exp.id);
+    const card = document.createElement('div');
+    card.className='exp-card'+(done?' done':'');
+    card.onclick=()=>showDetail(exp.id);
+    card.innerHTML=`
+      <div class="exp-icon">${exp.icon}</div>
+      <div class="exp-title">${exp.title}</div>
+      <div class="exp-meta">
+        <span class="exp-tag time">⏱ ${exp.time}</span>
+        <span class="exp-tag ${exp.diff==='Easy'?'easy':''}">${exp.diff}</span>
+        <span class="exp-tag mess">${exp.mess}</span>
+      </div>
+      <div class="exp-desc">${exp.desc}</div>
+      ${done?'<div class="exp-done-badge">✓ Completed!</div>':''}
+    `;
+    grid.appendChild(card);
+  });
+  document.getElementById('s-done').textContent=completed.length;
+  document.getElementById('s-total').textContent=EXPERIMENTS.length;
+}
+
+function getCompleted(){
+  try{ return JSON.parse(localStorage.getItem('science_exp_done')||'[]'); }catch(e){ return []; }
+}
+function setCompleted(arr){
+  try{ localStorage.setItem('science_exp_done', JSON.stringify(arr)); }catch(e){}
+}
+
+let currentExp=null;
+
+function showDetail(id){
+  const exp = EXPERIMENTS.find(e=>e.id===id);
+  if(!exp) return;
+  currentExp = exp;
+  document.getElementById('grid-view').style.display='none';
+  document.getElementById('detail-view').style.display='block';
+
+  document.getElementById('d-icon').textContent=exp.icon;
+  document.getElementById('d-title').textContent=exp.title;
+  document.getElementById('d-meta').innerHTML=`<span class="exp-tag time">⏱ ${exp.time}</span><span class="exp-tag easy">${exp.diff}</span><span class="exp-tag mess">${exp.mess}</span>`;
+  document.getElementById('d-safety').textContent=exp.safety;
+
+  document.getElementById('d-needs').innerHTML = exp.needs.map(n=>`<li>${n}</li>`).join('');
+  document.getElementById('d-steps').innerHTML = exp.steps.map(s=>`<div class="step-item"><div class="step-num"></div><div class="step-text">${s}</div></div>`).join('');
+  document.getElementById('d-why').innerHTML = `<strong>🤔 Why does this happen?</strong><br/>${exp.why}`;
+
+  const completed = getCompleted();
+  const done = completed.includes(exp.id);
+  const btn = document.getElementById('complete-btn');
+  btn.className = 'complete-btn'+(done?' done':'');
+  btn.textContent = done ? '✓ Experiment completed!' : '✓ I did this experiment!';
+
+  window.scrollTo(0,0);
+}
+
+function showGrid(){
+  document.getElementById('detail-view').style.display='none';
+  document.getElementById('grid-view').style.display='block';
+  buildGrid();
+}
+
+function markComplete(){
+  if(!currentExp) return;
+  const completed = getCompleted();
+  if(!completed.includes(currentExp.id)){
+    completed.push(currentExp.id);
+    setCompleted(completed);
+    const btn = document.getElementById('complete-btn');
+    btn.className='complete-btn done';
+    btn.textContent='✓ Experiment completed!';
+
+    if(typeof KLZ!=='undefined'){
+      KLZ.markPlayed('science_exp');
+      KLZ.checkTime();
+      if(completed.length>=1) KLZ.award('first_experiment');
+      if(completed.length>=EXPERIMENTS.length) KLZ.award('mad_scientist');
+    }
+  }
+}
+
+buildGrid();
+if(typeof KLZ!=='undefined'){ KLZ.checkTime(); }
+</script>
+</body>
+</html>

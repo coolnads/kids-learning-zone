@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#fbbf24"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<title>Reading Corner 📖</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Lora:wght@400;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#1a1208;color:#fff;min-height:100vh}
+  .wrap{max-width:680px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#fb923c;background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.25);padding:6px 14px;border-radius:99px}
+  .back:hover{background:rgba(251,146,60,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#fb923c}
+
+  /* Category filter */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .f-btn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#94a3b8;transition:all .15s;font-family:'Nunito',sans-serif}
+  .f-btn.active{background:#fb923c;border-color:#fb923c;color:#431407}
+  .f-btn:hover:not(.active){background:rgba(255,255,255,.1)}
+
+  /* Score bar */
+  .score-bar{display:flex;gap:12px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:8px 18px;min-width:70px}
+  .stat .sv{font-size:22px;font-weight:900;color:#fb923c}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Progress dots */
+  .prog{display:flex;gap:5px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#fb923c}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* Story card */
+  .story-card{background:#fdf6e9;color:#2d2410;border-radius:24px;padding:28px 26px;margin-bottom:18px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+  .story-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .story-emoji{font-size:36px}
+  .story-title{font-size:20px;font-weight:900;color:#7c2d12;font-family:'Nunito',sans-serif}
+  .story-cat{font-size:11px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .story-text{font-family:'Lora',serif;font-size:17px;line-height:1.8;color:#3d3017}
+  .story-text p{margin-bottom:10px}
+
+  /* Question section */
+  .q-section{margin-top:18px}
+  .q-counter{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;text-align:center}
+  .q-text{font-size:17px;font-weight:700;color:#fff;text-align:center;margin-bottom:18px;line-height:1.5}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+  .opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 10px;font-size:14px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:center;font-family:'Nunito',sans-serif}
+  .opt:hover:not(:disabled){background:rgba(251,146,60,.18);border-color:#fb923c}
+  .opt.correct{background:rgba(52,211,153,.15);border-color:#34d399;color:#6ee7b7}
+  .opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .opt:disabled{cursor:default}
+
+  .feedback{text-align:center;font-size:16px;font-weight:700;min-height:26px;margin:12px 0}
+  .feedback.good{color:#34d399}
+  .feedback.bad{color:#f87171}
+
+  .explain-box{background:rgba(251,146,60,.07);border:1px solid rgba(251,146,60,.18);border-radius:12px;padding:12px 16px;font-size:14px;color:#fed7aa;line-height:1.6;margin-bottom:14px;display:none}
+  .explain-box.show{display:block}
+  .explain-box strong{color:#fb923c}
+
+  .next-btn{display:none;margin:0 auto;padding:11px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#fb923c;color:#431407;border:none;border-radius:99px;cursor:pointer}
+  .next-btn:hover{background:#f97316}
+
+  /* End screen */
+  .end-screen{display:none;text-align:center;padding:28px 0}
+  .end-screen h2{font-size:26px;font-weight:900;margin-bottom:6px}
+  .end-big{font-size:64px;font-weight:900;color:#fb923c;line-height:1;margin:12px 0}
+  .restart-btn{padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#fb923c;color:#431407;border:none;border-radius:99px;cursor:pointer;margin-top:14px}
+
+  @media(max-width:440px){.opts{grid-template-columns:1fr}.story-card{padding:22px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">📖 <span>Reading Corner</span></div>
+  </div>
+
+  <div class="filters">
+    <button class="f-btn active" onclick="setCat('All',this)">📚 All</button>
+    <button class="f-btn" onclick="setCat('Adventure',this)">🗺️ Adventure</button>
+    <button class="f-btn" onclick="setCat('Animals',this)">🐾 Animals</button>
+    <button class="f-btn" onclick="setCat('Funny',this)">😄 Funny</button>
+    <button class="f-btn" onclick="setCat('Mystery',this)">🔍 Mystery</button>
+  </div>
+
+  <div class="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/6</div><div class="sl">Story</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <div class="prog" id="prog"></div>
+
+  <!-- Story card -->
+  <div class="story-card" id="story-card">
+    <div class="story-header">
+      <div class="story-emoji" id="story-emoji">📖</div>
+      <div>
+        <div class="story-title" id="story-title">Loading...</div>
+        <div class="story-cat" id="story-cat">Adventure</div>
+      </div>
+    </div>
+    <div class="story-text" id="story-text"></div>
+  </div>
+
+  <!-- Question section -->
+  <div class="q-section">
+    <div class="q-counter" id="q-counter">Question 1 of 3</div>
+    <div class="q-text" id="q-text">Loading question...</div>
+    <div class="opts" id="opts"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+  <div class="explain-box" id="explain-box"></div>
+  <button class="next-btn" id="next-btn" onclick="nextStep()">Next ➡</button>
+
+  <!-- End screen -->
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:52px">📚</div>
+    <h2 id="end-title">Great reader!</h2>
+    <div class="end-big" id="end-score">15</div>
+    <p style="color:#94a3b8" id="end-msg">out of 18</p>
+    <div id="end-stars" style="font-size:36px;margin:10px 0 18px"></div>
+    <button class="restart-btn" onclick="startGame()">Read more stories ↺</button>
+  </div>
+</div>
+
+<script src="badges.js"></script>
+<script>
+const STORIES = [
+  {
+    title:'The Lighthouse Keeper\'s Cat', emoji:'🐱', cat:'Adventure',
+    text:[
+      'Old Tom lived in a tall white lighthouse on a rocky island. Every night, he climbed 99 steps to light the great lamp, so ships would not crash on the rocks.',
+      'His only friend was a ginger cat named Pip. Pip loved to sit at the very top window and watch the boats sail by, her tail curling around her paws.',
+      'One stormy night, the wind howled and rain lashed the glass. Suddenly, Pip began to yowl and scratch at the door — something was wrong. Tom followed her down to the rocks below, where he found a small fishing boat stuck between two boulders, its engine dead.',
+      'Tom waved his lantern high above his head until the fishermen on board spotted the light and rowed safely to shore. "That cat saved our lives," said one fisherman, shivering but smiling. From that day on, Pip got fish for dinner every single night.'
+    ],
+    questions:[
+      {q:'How many steps did Tom climb every night?',opts:['50','99','100','75'],a:'99',explain:'The story says Tom climbed 99 steps to light the great lamp.'},
+      {q:'What was the cat\'s name?',opts:['Tom','Ginger','Pip','Whiskers'],a:'Pip',explain:'Tom\'s only friend was a ginger cat named Pip.'},
+      {q:'How did Pip help save the fishermen?',opts:['She swam to their boat','She scratched at the door to warn Tom','She made a loud noise that scared them awake','She turned on the lighthouse lamp herself'],a:'She scratched at the door to warn Tom',explain:'Pip began to yowl and scratch at the door, which alerted Tom that something was wrong.'},
+    ]
+  },
+  {
+    title:'The Grumpy Garden Gnome', emoji:'🍄', cat:'Funny',
+    text:[
+      'Gerald the garden gnome had stood in the same flower bed for thirty years, and he was sick of it. "I want an adventure!" he grumbled to the daisies, who, being flowers, said nothing back.',
+      'One windy Tuesday, a huge gust of wind knocked Gerald clean off his pedestal. He rolled across the lawn, bounced off a watering can, and landed — with a splash — inside next door\'s pond.',
+      'For three whole days, Gerald floated among the lily pads, making friends with a very confused frog named Bartholomew. "This is the best adventure I\'ve ever had!" Gerald announced happily, even though he had barely moved three metres.',
+      'When the gardener finally fished him out and put him back in his flower bed, Gerald didn\'t grumble anymore. He just smiled at the daisies and said, "You should try the pond sometime. Very relaxing."'
+    ],
+    questions:[
+      {q:'How many years had Gerald stood in the same flower bed?',opts:['Ten','Twenty','Thirty','Forty'],a:'Thirty',explain:'The story says Gerald had stood in the same flower bed for thirty years.'},
+      {q:'What knocked Gerald off his pedestal?',opts:['A dog','A huge gust of wind','The gardener','A football'],a:'A huge gust of wind',explain:'One windy Tuesday, a huge gust of wind knocked Gerald clean off his pedestal.'},
+      {q:'What was the name of the frog Gerald met?',opts:['Bartholomew','Gerald','Kermit','Hopper'],a:'Bartholomew',explain:'Gerald made friends with a very confused frog named Bartholomew.'},
+    ]
+  },
+  {
+    title:'The Mystery of the Missing Biscuits', emoji:'🍪', cat:'Mystery',
+    text:[
+      'Every day after school, Maya\'s grandmother left a plate of fresh biscuits on the kitchen windowsill to cool. And every day, by the time Maya got home, half the biscuits had vanished!',
+      '"It\'s a mystery," said Grandma, shaking her head. Maya decided to investigate. She checked the back door — locked. She checked the cat flap — too small for biscuits to fit through. She even checked under the table for crumbs.',
+      'The next day, Maya hid behind the curtains with her notebook, ready to catch the thief. At exactly 3:15pm, a flash of grey fur leapt onto the windowsill. It was a squirrel! It grabbed a biscuit in its tiny paws and scurried away up the apple tree.',
+      'Maya told Grandma the news, giggling. From then on, they left one biscuit out just for the squirrel — and kept the rest safely inside a tin with a lid.'
+    ],
+    questions:[
+      {q:'Where did Grandma leave the biscuits to cool?',opts:['On the table','On the kitchen windowsill','In the oven','On the porch'],a:'On the kitchen windowsill',explain:'Maya\'s grandmother left a plate of fresh biscuits on the kitchen windowsill to cool.'},
+      {q:'What time did the mystery thief appear?',opts:['12:00pm','1:30pm','3:15pm','5:00pm'],a:'3:15pm',explain:'At exactly 3:15pm, the squirrel leapt onto the windowsill.'},
+      {q:'Who — or what — was stealing the biscuits?',opts:['A cat','The postman','A squirrel','A bird'],a:'A squirrel',explain:'A flash of grey fur leapt onto the windowsill — it was a squirrel!'},
+    ]
+  },
+  {
+    title:'Finn and the Whale Song', emoji:'🐋', cat:'Animals',
+    text:[
+      'Finn lived in a small fishing village by the sea. Every summer, his grandfather took him out on their little wooden boat to look for whales.',
+      '"Listen closely," Grandfather always said, lowering a special microphone into the water. Through his headphones, Finn could hear deep, haunting songs — the whales were singing to each other from miles away.',
+      'One day, Finn noticed the songs sounded different — shorter, faster, almost worried. Grandfather frowned. "Something has them spooked," he said. They followed the sound and found a young whale calf tangled in an old fishing net, its mother circling anxiously nearby.',
+      'Finn called the coastguard, and within an hour, a rescue team carefully cut the calf free. As it swam off to join its mother, its song changed again — slow, deep, and calm. "That," said Grandfather, smiling, "was a thank you."'
+    ],
+    questions:[
+      {q:'What did Grandfather lower into the water to hear the whales?',opts:['A fishing net','A special microphone','A camera','A flashlight'],a:'A special microphone',explain:'Grandfather lowered a special microphone into the water so they could listen to the whale songs.'},
+      {q:'Why did the whale songs sound different that day?',opts:['It was raining','A whale calf was tangled in a net','The whales were sleeping','It was nighttime'],a:'A whale calf was tangled in a net',explain:'They found a young whale calf tangled in an old fishing net, which made the whale songs sound worried.'},
+      {q:'Who did Finn call for help?',opts:['The police','His mum','The coastguard','A vet'],a:'The coastguard',explain:'Finn called the coastguard, who sent a rescue team to free the whale calf.'},
+    ]
+  },
+  {
+    title:'The Robot Who Learned to Paint', emoji:'🤖', cat:'Adventure',
+    text:[
+      'Beep-9 was a cleaning robot, built only to sweep floors and empty bins. But every evening, after the museum closed, Beep-9 rolled quietly through the art galleries, looking at the paintings on the walls.',
+      'One night, a security guard left a paintbrush and some paint on a bench by accident. Curious, Beep-9 picked up the brush with its mechanical claw and made one small, wobbly stroke of blue paint on a spare canvas.',
+      'Night after night, Beep-9 practised in secret. Its strokes grew smoother. It mixed colours it had seen in the famous paintings — sunset orange, ocean teal, forest green. After three months, Beep-9 had created an entire painting of the museum at night, stars glittering through the skylight.',
+      'When the museum director found it the next morning, she gasped. "Who painted this?" she asked. Nobody believed her when she said it was the cleaning robot — until they set up a hidden camera and watched Beep-9 paint, brush held steady, for the whole world to see.'
+    ],
+    questions:[
+      {q:'What was Beep-9 originally built to do?',opts:['Paint pictures','Sweep floors and empty bins','Guard the museum','Sell tickets'],a:'Sweep floors and empty bins',explain:'Beep-9 was a cleaning robot, built only to sweep floors and empty bins.'},
+      {q:'How long did Beep-9 practise painting before finishing its picture?',opts:['One week','One month','Three months','One year'],a:'Three months',explain:'After three months, Beep-9 had created an entire painting of the museum at night.'},
+      {q:'How did people finally prove Beep-9 was the artist?',opts:['Beep-9 told them','They found paint on its claw','They set up a hidden camera','A witness saw it'],a:'They set up a hidden camera',explain:'They set up a hidden camera and watched Beep-9 paint for the whole world to see.'},
+    ]
+  },
+  {
+    title:'The Great Sandwich Swap', emoji:'🥪', cat:'Funny',
+    text:[
+      'Every lunchtime, Oliver brought the same cheese sandwich to school, and every lunchtime, he wished for something — anything — different. His friend Priya always had the most amazing lunches, packed by her dad who loved to cook.',
+      '"Let\'s swap!" Oliver suggested one day. Priya happily agreed, sliding over a container of spicy noodles, sweet mango, and tiny dumplings shaped like little parcels.',
+      'Oliver took one bite of the noodles and his eyes watered — they were much spicier than he expected! He gulped down his water bottle in one go while Priya giggled. Meanwhile, Priya bit into the plain cheese sandwich and pulled a face. "It\'s so... beige," she said, laughing.',
+      'They swapped back halfway through lunch, both relieved. But the next day, Oliver asked his mum to add just a little spice to his sandwich — and Priya asked her dad to pack one slightly boring snack, "just in case." They never fully swapped lunches again, but they always shared a little bite.'
+    ],
+    questions:[
+      {q:'What did Oliver bring to school every day?',opts:['Spicy noodles','A cheese sandwich','Mango','Dumplings'],a:'A cheese sandwich',explain:'Every lunchtime, Oliver brought the same cheese sandwich to school.'},
+      {q:'How did Oliver react to the spicy noodles?',opts:['He loved them instantly','His eyes watered and he drank water','He didn\'t notice the spice','He gave them back immediately'],a:'His eyes watered and he drank water',explain:'Oliver took one bite and his eyes watered — they were much spicier than he expected, so he gulped down his water.'},
+      {q:'What word did Priya use to describe the cheese sandwich?',opts:['Delicious','Spicy','Beige','Amazing'],a:'Beige',explain:'Priya bit into the plain cheese sandwich and said, "It\'s so... beige."'},
+    ]
+  },
+];
+
+let category='All', storyList=[], storyIdx=0, qIdx=0, score=0, best=0, answered=false;
+let totalQuestions=0, mode='reading'; // 'reading' or 'questions'
+
+function setCat(c,el){
+  category=c;
+  document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  startGame();
+}
+
+function startGame(){
+  score=0; storyIdx=0; qIdx=0; answered=false; mode='reading';
+  try{const b=localStorage.getItem('reading_best');if(b)best=parseInt(b);}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('story-card').style.display='block';
+  document.querySelector('.q-section').style.display='block';
+
+  const pool = category==='All' ? STORIES : STORIES.filter(s=>s.cat===category);
+  storyList = [...(pool.length?pool:STORIES)].sort(()=>Math.random()-.5).slice(0,6);
+  totalQuestions = storyList.reduce((sum,s)=>sum+s.questions.length,0);
+
+  buildDots(); loadStory();
+
+  if(typeof KLZ!=='undefined'){ KLZ.markPlayed('reading'); KLZ.checkTime(); KLZ.incStat('games_played'); }
+}
+
+function buildDots(){
+  const p=document.getElementById('prog'); p.innerHTML='';
+  for(let i=0;i<storyList.length;i++){const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);}
+}
+
+function loadStory(){
+  const s=storyList[storyIdx];
+  document.getElementById('story-emoji').textContent=s.emoji;
+  document.getElementById('story-title').textContent=s.title;
+  document.getElementById('story-cat').textContent=s.cat;
+  document.getElementById('story-text').innerHTML=s.text.map(p=>`<p>${p}</p>`).join('');
+  document.getElementById('s-round').textContent=(storyIdx+1)+'/'+storyList.length;
+  document.getElementById('dot-'+storyIdx).className='prog-dot cur';
+
+  // Show "I've read it" style first question prompt
+  qIdx=0;
+  document.querySelector('.q-section').style.display='block';
+  loadQuestion();
+}
+
+function loadQuestion(){
+  answered=false;
+  const s=storyList[storyIdx];
+  const q=s.questions[qIdx];
+  document.getElementById('q-counter').textContent=`Question ${qIdx+1} of ${s.questions.length}`;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('explain-box').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('s-score').textContent=score;
+
+  const el=document.getElementById('opts'); el.innerHTML='';
+  [...q.opts].sort(()=>Math.random()-.5).forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=o;
+    b.onclick=()=>pickAns(o,b,q);
+    el.appendChild(b);
+  });
+}
+
+function pickAns(val,btn,q){
+  if(answered)return; answered=true;
+  const ok=val===q.a;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===q.a)b.classList.add('correct');});
+  const fb=document.getElementById('feedback');
+  if(ok){
+    score++;
+    const msgs=['Great reading! 📖','Correct! 🌟','You understood it well! 🎉','Spot on! ⭐'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    if(typeof KLZ!=='undefined') KLZ.incStat('correct_total');
+  } else {
+    fb.textContent='Not quite — let\'s check the story! 🔍';
+    fb.className='feedback bad';
+  }
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('explain-box').innerHTML=`<strong>📖 In the story:</strong> ${q.explain}`;
+  document.getElementById('explain-box').classList.add('show');
+  document.getElementById('next-btn').style.display='block';
+  document.getElementById('next-btn').textContent = (qIdx < storyList[storyIdx].questions.length-1) ? 'Next question ➡' : (storyIdx < storyList.length-1 ? 'Next story 📖' : 'Finish 🏁');
+}
+
+function nextStep(){
+  const s=storyList[storyIdx];
+  if(qIdx < s.questions.length-1){
+    qIdx++;
+    loadQuestion();
+  } else {
+    document.getElementById('dot-'+storyIdx).className='prog-dot good';
+    storyIdx++;
+    if(storyIdx>=storyList.length){ showEnd(); return; }
+    loadStory();
+  }
+}
+
+function showEnd(){
+  document.getElementById('story-card').style.display='none';
+  document.querySelector('.q-section').style.display='none';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('explain-box').classList.remove('show');
+  document.getElementById('next-btn').style.display='none';
+  if(score>best){best=score;try{localStorage.setItem('reading_best',best);}catch(e){}}
+  document.getElementById('s-best').textContent=best;
+  const pct=score/totalQuestions;
+  document.getElementById('end-title').textContent=pct>=0.9?'Reading champion! 📚':pct>=0.6?'Great reader! 📖':'Keep reading! 🌱';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`out of ${totalQuestions} questions`;
+  document.getElementById('end-stars').textContent=pct>=0.9?'⭐⭐⭐':pct>=0.6?'⭐⭐':'⭐';
+  document.getElementById('end-screen').style.display='block';
+  if(typeof KLZ!=='undefined'){
+    if(score===totalQuestions){ KLZ.award('first_perfect'); KLZ.award('reading_ace'); }
+    if(pct>=0.85) KLZ.award('reading_ace');
+    KLZ.incStat('games_played');
+  }
+}
+
+startGame();
+</script>
+</body>
+</html>
