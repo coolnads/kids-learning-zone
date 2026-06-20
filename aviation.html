@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#fbbf24"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<title>Aviation Zone ✈️</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:#04101f;color:#fff;min-height:100vh;overflow-x:hidden}
+
+  .sky{position:fixed;inset:0;pointer-events:none;z-index:0;background:linear-gradient(180deg,#04101f 0%,#0a1f38 100%)}
+  .cloud{position:absolute;opacity:.06;font-size:60px;animation:drift linear infinite}
+  @keyframes drift{from{transform:translateX(-100px)}to{transform:translateX(110vw)}}
+
+  .wrap{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:20px 16px 60px}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .back{text-decoration:none;font-size:13px;font-weight:700;color:#38bdf8;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);padding:6px 14px;border-radius:99px}
+  .back:hover{background:rgba(56,189,248,.22)}
+  .page-title{font-size:22px;font-weight:900}
+  .page-title span{color:#38bdf8}
+
+  /* Mode tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .tab{flex:1;min-width:130px;padding:11px 8px;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:'Nunito',sans-serif;transition:all .15s;text-align:center}
+  .tab.active{background:#38bdf8;color:#04101f}
+  .tab:not(.active){background:rgba(255,255,255,.07);color:#94a3b8}
+  .tab:hover:not(.active){background:rgba(255,255,255,.12)}
+
+  /* Score bar */
+  .score-bar{display:flex;gap:12px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .stat{text-align:center;background:rgba(255,255,255,.06);border-radius:14px;padding:8px 18px;min-width:70px}
+  .stat .sv{font-size:22px;font-weight:900;color:#38bdf8}
+  .stat .sl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Progress dots */
+  .prog{display:flex;gap:5px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s}
+  .prog-dot.good{background:#38bdf8}
+  .prog-dot.bad{background:#f87171}
+  .prog-dot.cur{background:#fbbf24}
+
+  /* ===== LOGO QUIZ ===== */
+  #view-logo{display:block}
+  .logo-card{background:rgba(255,255,255,.04);border:1px solid rgba(56,189,248,.2);border-radius:24px;padding:32px 24px;text-align:center;margin-bottom:18px}
+  .tail-display{width:140px;height:140px;border-radius:24px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:64px;box-shadow:0 12px 36px rgba(0,0,0,.4);position:relative;overflow:hidden}
+  .logo-hint{font-size:13px;color:#64748b;margin-bottom:18px}
+  .logo-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+  .logo-opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 10px;font-size:14px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:center;font-family:'Nunito',sans-serif}
+  .logo-opt:hover:not(:disabled){background:rgba(56,189,248,.18);border-color:#38bdf8}
+  .logo-opt.correct{background:rgba(52,211,153,.15);border-color:#34d399;color:#6ee7b7}
+  .logo-opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .logo-opt:disabled{cursor:default}
+
+  /* ===== AIRCRAFT SPOTTER ===== */
+  #view-aircraft{display:none}
+  .aircraft-card{background:rgba(255,255,255,.04);border:1px solid rgba(56,189,248,.2);border-radius:24px;padding:28px 22px;margin-bottom:18px;text-align:center}
+  .aircraft-silhouette{font-size:80px;margin-bottom:8px;line-height:1}
+  .aircraft-q{font-size:15px;color:#94a3b8;margin-bottom:18px}
+  .aircraft-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+  .aircraft-opt{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 10px;font-size:14px;font-weight:700;color:#e2e8f0;cursor:pointer;transition:all .15s;text-align:center;font-family:'Nunito',sans-serif}
+  .aircraft-opt:hover:not(:disabled){background:rgba(56,189,248,.18);border-color:#38bdf8}
+  .aircraft-opt.correct{background:rgba(52,211,153,.15);border-color:#34d399;color:#6ee7b7}
+  .aircraft-opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#fca5a5}
+  .aircraft-opt:disabled{cursor:default}
+
+  /* ===== HOW FLIGHT WORKS ===== */
+  #view-howflies{display:none}
+  .topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+  .topic-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px;cursor:pointer;transition:all .18s;text-align:center}
+  .topic-card:hover{transform:translateY(-3px)}
+  .topic-card.active{border-color:#38bdf8;background:rgba(56,189,248,.1)}
+  .topic-card .tp-icon{font-size:26px;margin-bottom:4px}
+  .topic-card .tp-label{font-size:12px;font-weight:900;color:#fff}
+
+  .step-bar{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .step-pill{font-size:11px;font-weight:700;padding:4px 12px;border-radius:99px;cursor:pointer;transition:all .15s;border:none;font-family:'Nunito',sans-serif}
+  .step-pill.done{background:rgba(56,189,248,.2);color:#38bdf8}
+  .step-pill.active{background:#38bdf8;color:#04101f}
+  .step-pill.future{background:rgba(255,255,255,.07);color:#475569}
+
+  .content-card{background:rgba(255,255,255,.04);border:1px solid rgba(56,189,248,.15);border-radius:24px;overflow:hidden;margin-bottom:18px}
+  .visual-panel{background:#06182e}
+  .visual-panel canvas{display:block;width:100%;height:220px}
+  .text-panel{padding:20px 22px}
+  .step-badge{font-size:11px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .step-title{font-size:21px;font-weight:900;color:#fff;margin-bottom:8px}
+  .step-body{font-size:14px;color:#94a3b8;line-height:1.7}
+  .step-body strong{color:#e2e8f0}
+  .fact-box{background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);border-radius:12px;padding:12px 16px;margin-top:14px;font-size:13px;color:#bae6fd;line-height:1.6}
+  .fact-box span{font-size:15px;margin-right:6px}
+
+  .nav-row{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .nav-btn{padding:10px 24px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;border-radius:99px;cursor:pointer;transition:all .15s;border:none}
+  .nav-prev{background:rgba(255,255,255,.07);color:#94a3b8}
+  .nav-prev:hover{background:rgba(255,255,255,.12)}
+  .nav-prev:disabled{opacity:.3;cursor:default}
+  .nav-next{background:#38bdf8;color:#04101f}
+  .nav-next:hover{background:#0ea5e9}
+  .nav-next:disabled{opacity:.3;cursor:default}
+
+  /* Shared */
+  .feedback{text-align:center;font-size:16px;font-weight:700;min-height:26px;margin:10px 0}
+  .feedback.good{color:#34d399}
+  .feedback.bad{color:#f87171}
+  .fun-fact{background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.18);border-radius:12px;padding:12px 16px;font-size:14px;color:#bae6fd;line-height:1.6;margin-bottom:12px;display:none}
+  .fun-fact.show{display:block}
+  .fun-fact strong{color:#38bdf8}
+
+  .next-btn{display:none;margin:0 auto;padding:11px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#38bdf8;color:#04101f;border:none;border-radius:99px;cursor:pointer}
+  .next-btn:hover{background:#0ea5e9}
+
+  /* End screen */
+  .end-screen{display:none;text-align:center;padding:28px 0}
+  .end-screen h2{font-size:26px;font-weight:900;margin-bottom:6px}
+  .end-big{font-size:64px;font-weight:900;color:#38dbf8;line-height:1;margin:12px 0}
+  .restart-btn{padding:12px 36px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;background:#38bdf8;color:#04101f;border:none;border-radius:99px;cursor:pointer;margin-top:14px}
+
+  @media(max-width:440px){.logo-opts,.aircraft-opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="sky" id="sky"></div>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Home</a>
+    <div class="page-title">✈️ <span>Aviation Zone</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('logo',this)">🛩️ Airline Logos</button>
+    <button class="tab" onclick="setMode('aircraft',this)">🛫 Aircraft Spotter</button>
+    <button class="tab" onclick="setMode('howflies',this)">💨 How Flight Works</button>
+  </div>
+
+  <!-- Score bar (logo + aircraft only) -->
+  <div class="score-bar" id="score-bar">
+    <div class="stat"><div class="sv" id="s-score">0</div><div class="sl">Score</div></div>
+    <div class="stat"><div class="sv" id="s-round">1/12</div><div class="sl">Round</div></div>
+    <div class="stat"><div class="sv" id="s-best">—</div><div class="sl">Best</div></div>
+  </div>
+
+  <div class="prog" id="prog"></div>
+
+  <!-- ===== AIRLINE LOGO QUIZ ===== -->
+  <div id="view-logo">
+    <div class="logo-card">
+      <div class="tail-display" id="tail-display">✈️</div>
+      <div class="logo-hint" id="logo-hint">Which airline does this belong to?</div>
+      <div class="logo-opts" id="logo-opts"></div>
+    </div>
+    <div class="feedback" id="logo-fb"></div>
+    <div class="fun-fact" id="logo-fact"></div>
+    <button class="next-btn" id="logo-next" onclick="nextLogo()">Next airline ➡</button>
+  </div>
+
+  <!-- ===== AIRCRAFT SPOTTER ===== -->
+  <div id="view-aircraft">
+    <div class="aircraft-card">
+      <div class="aircraft-silhouette" id="aircraft-silhouette">✈️</div>
+      <div class="aircraft-q" id="aircraft-clue">This aircraft has 2 engines and a distinctive hump at the front...</div>
+      <div class="aircraft-opts" id="aircraft-opts"></div>
+    </div>
+    <div class="feedback" id="aircraft-fb"></div>
+    <div class="fun-fact" id="aircraft-fact"></div>
+    <button class="next-btn" id="aircraft-next" onclick="nextAircraft()">Next aircraft ➡</button>
+  </div>
+
+  <!-- ===== HOW FLIGHT WORKS ===== -->
+  <div id="view-howflies">
+    <div class="topic-grid" id="topic-grid">
+      <div class="topic-card active" onclick="setFlyTopic(0,this)"><div class="tp-icon">💨</div><div class="tp-label">Lift</div></div>
+      <div class="topic-card" onclick="setFlyTopic(1,this)"><div class="tp-icon">🚀</div><div class="tp-label">Thrust</div></div>
+      <div class="topic-card" onclick="setFlyTopic(2,this)"><div class="tp-icon">🎮</div><div class="tp-label">Controls</div></div>
+      <div class="topic-card" onclick="setFlyTopic(3,this)"><div class="tp-icon">🗼</div><div class="tp-label">Airports</div></div>
+      <div class="topic-card" onclick="setFlyTopic(4,this)"><div class="tp-icon">👨‍✈️</div><div class="tp-label">Flight Crew</div></div>
+    </div>
+
+    <div class="step-bar" id="step-bar"></div>
+
+    <div class="content-card">
+      <div class="visual-panel"><canvas id="scene-canvas" height="220"></canvas></div>
+      <div class="text-panel">
+        <div class="step-badge" id="step-badge">Step 1 of 5</div>
+        <div class="step-title" id="step-title">Wings create lift</div>
+        <div class="step-body" id="step-body">...</div>
+        <div class="fact-box" id="fact-box"><span>💡</span>...</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn nav-prev" id="nav-prev" onclick="stepNav(-1)">← Previous</button>
+      <button class="nav-btn nav-next" id="nav-next" onclick="stepNav(1)">Next →</button>
+    </div>
+  </div>
+
+  <!-- End screen (logo/aircraft only) -->
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:54px">✈️</div>
+    <h2 id="end-title">Aviation expert!</h2>
+    <div class="end-big" id="end-score">10</div>
+    <p style="color:#94a3b8" id="end-msg">out of 12</p>
+    <div id="end-stars" style="font-size:36px;margin:10px 0 18px"></div>
+    <button class="restart-btn" onclick="startGame()">Play again ↺</button>
+  </div>
+</div>
+
+<script src="badges.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Airline tail colours/styles described abstractly (no real logos reproduced — original colour + shape combos that evoke each airline's livery)
+const AIRLINES = [
+  {name:'British Airways',tailColor:'linear-gradient(135deg,#1A2B5C,#C8102E)',symbol:'🇬🇧',hint:'A major UK airline, based at Heathrow Airport',fact:'British Airways is the flag carrier of the United Kingdom. Its tail design is inspired by a ribbon, and the airline has flown the Concorde supersonic jet in the past!'},
+  {name:'Emirates',tailColor:'linear-gradient(135deg,#D4042A,#8B0000)',symbol:'🇦🇪',hint:'Based in Dubai, famous for huge A380 planes',fact:'Emirates operates more Airbus A380s — the world\'s largest passenger plane — than any other airline. Some of their planes even have a shower and an onboard bar!'},
+  {name:'Qatar Airways',tailColor:'linear-gradient(135deg,#5C0632,#8B1A1A)',symbol:'🇶🇦',hint:'Based in Doha, has won "World\'s Best Airline" many times',fact:'Qatar Airways has been named World\'s Best Airline more times than any other airline at the Skytrax awards. Its hub, Hamad International Airport, has its own indoor tropical garden!'},
+  {name:'Singapore Airlines',tailColor:'linear-gradient(135deg,#F9A825,#0D47A1)',symbol:'🇸🇬',hint:'Famous for its "Singapore Girl" cabin crew uniform',fact:'Singapore Airlines was the first airline in the world to fly the Airbus A380. Its iconic blue and gold colours represent the airline\'s tropical home.'},
+  {name:'Lufthansa',tailColor:'linear-gradient(135deg,#05164D,#FFB700)',symbol:'🇩🇪',hint:'Germany\'s flag carrier, crane logo',fact:'Lufthansa\'s logo is a flying crane bird, designed all the way back in 1918! It\'s one of the oldest continuously used airline logos in the world.'},
+  {name:'Air France',tailColor:'linear-gradient(135deg,#002157,#ED2939)',symbol:'🇫🇷',hint:'France\'s flag carrier, based at Charles de Gaulle',fact:'Air France was one of the launch airlines for the supersonic Concorde alongside British Airways. Its logo features a stylised seahorse called a hippocampe!'},
+  {name:'KLM',tailColor:'linear-gradient(135deg,#00A1DE,#00529B)',symbol:'🇳🇱',hint:'The Netherlands\' flag carrier, crown logo',fact:'KLM is the oldest airline in the world still operating under its original name, founded in 1919! Its logo crown represents the Dutch monarchy.'},
+  {name:'American Airlines',tailColor:'linear-gradient(135deg,#0078D2,#C8102E)',symbol:'🇺🇸',hint:'One of the largest airlines in the world by fleet size',fact:'American Airlines operates one of the largest fleets in the world with nearly 1,000 aircraft. Their AA logo with the eagle has flown since 1968!'},
+  {name:'Delta Air Lines',tailColor:'linear-gradient(135deg,#003366,#E01933)',symbol:'🇺🇸',hint:'Based in Atlanta, the world\'s busiest airport',fact:'Delta operates from Hartsfield-Jackson Atlanta International Airport — the busiest airport in the world by passenger numbers, with over 100 million travellers a year!'},
+  {name:'Qantas',tailColor:'linear-gradient(135deg,#E40C2B,#FFFFFF)',symbol:'🇦🇺',hint:'Australia\'s flag carrier, kangaroo logo',fact:'Qantas is one of the oldest airlines in the world, founded in 1920! Its flying kangaroo logo is one of the most recognised airline symbols on Earth.'},
+  {name:'Cathay Pacific',tailColor:'linear-gradient(135deg,#1A7A3C,#006442)',symbol:'🇭🇰',hint:'Based in Hong Kong, green brushstroke tail',fact:'Cathay Pacific\'s green "brushstroke" tail design represents the wings of a bird taking flight, inspired by traditional Asian calligraphy.'},
+  {name:'ANA (All Nippon Airways)',tailColor:'linear-gradient(135deg,#13448C,#A8C7E8)',symbol:'🇯🇵',hint:'Japan\'s largest airline, blue and white livery',fact:'ANA stands for All Nippon Airways. "Nippon" is the Japanese word for Japan! ANA has won the 5-Star airline rating for over a decade.'},
+  {name:'Turkish Airlines',tailColor:'linear-gradient(135deg,#C70017,#7A0000)',symbol:'🇹🇷',hint:'Flies to more countries than any other airline',fact:'Turkish Airlines flies to more countries than any other airline in the world — over 120 of them! Istanbul Airport is one of the largest in the world.'},
+  {name:'Etihad Airways',tailColor:'linear-gradient(135deg,#BFA46F,#5C4A21)',symbol:'🇦🇪',hint:'Based in Abu Dhabi, gold and sand colours',fact:'Etihad means "union" in Arabic, named for the United Arab Emirates. Some of their planes have a private apartment called "The Residence" with its own bedroom!'},
+  {name:'Virgin Atlantic',tailColor:'linear-gradient(135deg,#E10A0A,#7A0000)',symbol:'🇬🇧',hint:'British airline founded by Richard Branson',fact:'Virgin Atlantic was founded by entrepreneur Richard Branson in 1984. Its planes have fun names like "Lady Penelope" and "Pretty Woman" painted on the nose!'},
+  {name:'United Airlines',tailColor:'linear-gradient(135deg,#002244,#3399CC)',symbol:'🇺🇸',hint:'One of the "big three" US airlines, globe logo',fact:'United Airlines flies to more destinations than any other airline in the world. Their globe logo represents their truly worldwide network!'},
+];
+
+// Aircraft data - distinctive features for identification
+const AIRCRAFT = [
+  {name:'Boeing 747', nickname:'Jumbo Jet', emoji:'✈️', engines:4, hint:'Has a distinctive hump at the front of the fuselage', fact:'The Boeing 747 was the world\'s first wide-body jet, nicknamed the "Jumbo Jet." Its hump houses an upper deck — on some airlines, it used to have a lounge or even a piano bar up there!'},
+  {name:'Airbus A380', nickname:'Superjumbo', emoji:'🛩️', engines:4, hint:'The largest passenger plane in the world, full double-deck', fact:'The Airbus A380 is the largest passenger aircraft ever built, able to carry over 850 passengers. Unlike the 747, it has TWO FULL decks the entire length of the plane!'},
+  {name:'Boeing 737', nickname:'The workhorse', emoji:'🛫', engines:2, hint:'The most produced commercial jet airliner in history', fact:'More Boeing 737s have been built than any other commercial jet in history — over 11,000 of them! It\'s the plane you\'re most likely to fly on for short trips.'},
+  {name:'Airbus A320', nickname:'Boeing 737\'s rival', emoji:'🛬', engines:2, hint:'Airbus\'s answer to the Boeing 737, very common worldwide', fact:'The Airbus A320 family was the first airliner to use a "fly-by-wire" system, where computers help control the plane instead of just cables and pulleys!'},
+  {name:'Concorde', nickname:'The supersonic jet', emoji:'🚀', engines:4, hint:'Could fly faster than the speed of sound, retired in 2003', fact:'Concorde could fly from London to New York in under 3.5 hours — about twice as fast as a normal plane! It flew faster than a rifle bullet at over 2,100 km/h.'},
+  {name:'Boeing 787 Dreamliner', nickname:'The Dreamliner', emoji:'☁️', engines:2, hint:'Made mostly of lightweight carbon fibre, not metal', fact:'The 787 Dreamliner is made of about 50% carbon-fibre composite material instead of aluminium, making it lighter and more fuel-efficient. Its windows are also the largest of any airliner!'},
+  {name:'Cessna 172', nickname:'Small training plane', emoji:'🛩️', engines:1, hint:'A tiny single-engine plane, often used to learn flying', fact:'The Cessna 172 is the most produced aircraft in history — over 44,000 have been built! Most pilots learn to fly in a plane just like this one.'},
+  {name:'Boeing 777', nickname:'Triple Seven', emoji:'✈️', engines:2, hint:'Has the largest jet engines of any twin-engine airliner', fact:'The Boeing 777\'s engines are so large that the fuselage of a 737 could almost fit inside one! It\'s nicknamed the "Triple Seven."'},
+];
+
+// Color map for aircraft icons (used to differentiate visually)
+const AIRCRAFT_COLORS={'Boeing 747':'#3b82f6','Airbus A380':'#8b5cf6','Boeing 737':'#10b981','Airbus A320':'#f59e0b','Concorde':'#ef4444','Boeing 787 Dreamliner':'#06b6d4','Cessna 172':'#84cc16','Boeing 777':'#ec4899'};
+
+const TOTAL=12;
+let gameMode='logo', score=0, best=0, round=0, answered=false;
+let logoList=[], aircraftList=[];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODE SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+function setMode(m,el){
+  gameMode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['logo','aircraft','howflies'].forEach(v=>document.getElementById('view-'+v).style.display='none');
+  document.getElementById('view-'+m).style.display='block';
+
+  if(m==='howflies'){
+    document.getElementById('score-bar').style.display='none';
+    document.getElementById('prog').style.display='none';
+    buildStepBar(); renderFly();
+  } else {
+    document.getElementById('score-bar').style.display='flex';
+    document.getElementById('prog').style.display='flex';
+    startGame();
+  }
+}
+
+function startGame(){
+  score=0; round=0; answered=false;
+  try{const b=localStorage.getItem('aviation_best_'+gameMode);if(b)best=parseInt(b);}catch(e){}
+  document.getElementById('s-best').textContent=best||'—';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('view-'+gameMode).style.display='block';
+
+  logoList=[...AIRLINES].sort(()=>Math.random()-.5).slice(0,TOTAL);
+  aircraftList=[...AIRCRAFT,...AIRCRAFT].sort(()=>Math.random()-.5).slice(0,TOTAL); // duplicate pool since only 8 unique
+
+  buildDots();
+  if(gameMode==='logo') loadLogo();
+  else if(gameMode==='aircraft') loadAircraft();
+
+  if(typeof KLZ!=='undefined'){ KLZ.markPlayed('aviation'); KLZ.checkTime(); KLZ.incStat('games_played'); }
+}
+
+function buildDots(){
+  const p=document.getElementById('prog'); p.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='prog-dot';d.id='dot-'+i;p.appendChild(d);}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AIRLINE LOGO QUIZ
+// ═══════════════════════════════════════════════════════════════════════════
+function loadLogo(){
+  answered=false;
+  const a=logoList[round];
+  const td=document.getElementById('tail-display');
+  td.style.background=a.tailColor;
+  td.textContent=a.symbol;
+  document.getElementById('logo-hint').textContent=a.hint;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('logo-fb').textContent='';
+  document.getElementById('logo-fb').className='feedback';
+  document.getElementById('logo-fact').classList.remove('show');
+  document.getElementById('logo-next').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+
+  // Build options: correct + 3 random wrong
+  const wrongs=AIRLINES.filter(x=>x.name!==a.name).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.name);
+  const opts=[a.name,...wrongs].sort(()=>Math.random()-.5);
+  const el=document.getElementById('logo-opts'); el.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='logo-opt'; b.textContent=o;
+    b.onclick=()=>pickLogo(o,b,a);
+    el.appendChild(b);
+  });
+}
+
+function pickLogo(val,btn,a){
+  if(answered)return; answered=true;
+  const ok=val===a.name;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.logo-opt').forEach(b=>{b.disabled=true;if(b.textContent===a.name)b.classList.add('correct');});
+  const fb=document.getElementById('logo-fb');
+  if(ok){
+    score++;
+    const msgs=['Correct! ✈️','Spot on! 🎉','You know your airlines! 🌟','Brilliant! ⭐'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+round).className='prog-dot good';
+    if(typeof KLZ!=='undefined') KLZ.incStat('correct_total');
+  } else {
+    fb.textContent=`That's ${a.name}! ✈️`;
+    fb.className='feedback bad';
+    document.getElementById('dot-'+round).className='prog-dot bad';
+  }
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('logo-fact').innerHTML=`<strong>✈️ ${a.name}:</strong> ${a.fact}`;
+  document.getElementById('logo-fact').classList.add('show');
+  document.getElementById('logo-next').style.display='block';
+}
+
+function nextLogo(){ round++; if(round>=TOTAL){showEnd();return;} loadLogo(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AIRCRAFT SPOTTER
+// ═══════════════════════════════════════════════════════════════════════════
+function loadAircraft(){
+  answered=false;
+  const a=aircraftList[round];
+  document.getElementById('aircraft-silhouette').textContent=a.emoji;
+  document.getElementById('aircraft-silhouette').style.color=AIRCRAFT_COLORS[a.name]||'#fff';
+  document.getElementById('aircraft-clue').textContent=`${a.engines} engine${a.engines>1?'s':''} • ${a.hint}`;
+  document.getElementById('s-round').textContent=(round+1)+'/'+TOTAL;
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('aircraft-fb').textContent='';
+  document.getElementById('aircraft-fb').className='feedback';
+  document.getElementById('aircraft-fact').classList.remove('show');
+  document.getElementById('aircraft-next').style.display='none';
+  document.getElementById('dot-'+round).className='prog-dot cur';
+
+  const wrongs=AIRCRAFT.filter(x=>x.name!==a.name).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.name);
+  const opts=[a.name,...wrongs].sort(()=>Math.random()-.5);
+  const el=document.getElementById('aircraft-opts'); el.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='aircraft-opt'; b.textContent=o;
+    b.onclick=()=>pickAircraft(o,b,a);
+    el.appendChild(b);
+  });
+}
+
+function pickAircraft(val,btn,a){
+  if(answered)return; answered=true;
+  const ok=val===a.name;
+  btn.classList.add(ok?'correct':'wrong');
+  document.querySelectorAll('.aircraft-opt').forEach(b=>{b.disabled=true;if(b.textContent===a.name)b.classList.add('correct');});
+  const fb=document.getElementById('aircraft-fb');
+  if(ok){
+    score++;
+    const msgs=['Correct! 🛫','Great spotting! 🎉','You know your planes! ⭐','Brilliant! 🌟'];
+    fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    fb.className='feedback good';
+    document.getElementById('dot-'+round).className='prog-dot good';
+    if(typeof KLZ!=='undefined') KLZ.incStat('correct_total');
+  } else {
+    fb.textContent=`That's the ${a.name} (${a.nickname})! ✈️`;
+    fb.className='feedback bad';
+    document.getElementById('dot-'+round).className='prog-dot bad';
+  }
+  document.getElementById('s-score').textContent=score;
+  document.getElementById('aircraft-fact').innerHTML=`<strong>✈️ ${a.name}:</strong> ${a.fact}`;
+  document.getElementById('aircraft-fact').classList.add('show');
+  document.getElementById('aircraft-next').style.display='block';
+}
+
+function nextAircraft(){ round++; if(round>=TOTAL){showEnd();return;} loadAircraft(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// END SCREEN (logo/aircraft)
+// ═══════════════════════════════════════════════════════════════════════════
+function showEnd(){
+  document.getElementById('view-'+gameMode).style.display='none';
+  if(score>best){best=score;try{localStorage.setItem('aviation_best_'+gameMode,best);}catch(e){}}
+  document.getElementById('s-best').textContent=best;
+  const pct=score/TOTAL;
+  document.getElementById('end-title').textContent=pct>=0.9?'Aviation expert! ✈️':pct>=0.6?'Frequent flyer! 🛫':'Keep spotting! 🌤️';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-msg').textContent=`out of ${TOTAL}`;
+  document.getElementById('end-stars').textContent=pct>=0.9?'⭐⭐⭐':pct>=0.6?'⭐⭐':'⭐';
+  document.getElementById('end-screen').style.display='block';
+  if(typeof KLZ!=='undefined'){
+    if(score===TOTAL){ KLZ.award('first_perfect'); }
+    if(gameMode==='logo' && score>=10) KLZ.award('logo_ace');
+    if(gameMode==='aircraft' && score>=10) KLZ.award('plane_spotter');
+    KLZ.incStat('games_played');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOW FLIGHT WORKS
+// ═══════════════════════════════════════════════════════════════════════════
+const FLY_TOPICS=[
+  {name:'Lift',
+   steps:[
+     {title:'Wings create lift',badge:'Step 1 — The basics',
+      body:'A plane\'s wings are specially shaped — flatter on the bottom, curved on top. As the plane moves forward, air flows over and under the wing. This creates a force called <strong>lift</strong> that pushes the plane upward, against gravity.',
+      fact:'A Boeing 747\'s wings are so strong they can flex up and down by more than 7 metres during flight without breaking — you can sometimes see them bounce gently on a bumpy flight!',
+      draw:'lift1'},
+     {title:'Faster air = lower pressure',badge:'Step 2 — Bernoulli\'s principle',
+      body:'Because the top of the wing is curved, air has to travel further and faster over the top than underneath. Faster moving air has <strong>lower pressure</strong>. This pressure difference between the top and bottom of the wing is what creates lift!',
+      fact:'This is called Bernoulli\'s Principle, discovered by Swiss scientist Daniel Bernoulli in 1738 — over 150 years before the Wright Brothers\' first flight!',
+      draw:'lift2'},
+     {title:'Angle of attack',badge:'Step 3 — Tilting the wing',
+      body:'Pilots can also create lift by tilting the wings slightly upward into the airflow — this is called the <strong>angle of attack</strong>. More tilt usually means more lift, up to a point. Too much, and the wing "stalls" and loses lift!',
+      fact:'During take off, you can see the wing flaps extend downward and backward — this increases the wing\'s curve and surface area, creating extra lift at slow speeds!',
+      draw:'lift3'},
+   ]},
+  {name:'Thrust',
+   steps:[
+     {title:'Engines push the plane forward',badge:'Step 1 — Getting moving',
+      body:'A plane needs <strong>thrust</strong> — a forward-pushing force — to get moving fast enough for the wings to create lift. Jet engines suck in huge amounts of air, heat it up by burning fuel, and blast it out the back at high speed.',
+      fact:'A single jet engine on a Boeing 747 produces around 100,000 lbs of thrust — that\'s like the pushing power of about 70 Formula 1 cars combined!',
+      draw:'thrust1'},
+     {title:'Newton\'s third law',badge:'Step 2 — Action and reaction',
+      body:'Jet engines work because of <strong>Newton\'s Third Law</strong>: every action has an equal and opposite reaction. The engine pushes air backward very fast — so the air pushes the engine (and the whole plane) forward!',
+      fact:'A jet engine sucks in enough air every second to fill three classrooms. That air is then squeezed, heated to over 1,000°C, and blasted out the back!',
+      draw:'thrust2'},
+     {title:'Takeoff speed',badge:'Step 3 — Reaching V1',
+      body:'A plane needs to reach a certain speed before it can take off — usually around 150-180 mph for a commercial jet. Pilots call this <strong>V1, Vr, and V2</strong> — the speeds for "go", "rotate" (lift the nose), and "safe climb".',
+      fact:'A Boeing 747 needs about 2-3 km of runway to reach takeoff speed — that\'s roughly 30 football pitches laid end to end!',
+      draw:'thrust3'},
+   ]},
+  {name:'Controls',
+   steps:[
+     {title:'The control surfaces',badge:'Step 1 — Moving parts',
+      body:'Planes have moving parts on the wings and tail that let the pilot steer. <strong>Ailerons</strong> on the wings roll the plane left or right. The <strong>elevator</strong> on the tail tips the nose up or down. The <strong>rudder</strong> on the tail fin turns the plane left or right.',
+      fact:'When you see the wingtips wobble slightly during a flight, that\'s the ailerons making tiny adjustments — sometimes hundreds of times per minute — to keep the plane stable!',
+      draw:'controls1'},
+     {title:'Pitch, roll, and yaw',badge:'Step 2 — The three movements',
+      body:'Planes move in three ways: <strong>pitch</strong> (nose up or down), <strong>roll</strong> (tipping side to side, like a barrel), and <strong>yaw</strong> (turning left or right, like shaking your head "no"). Combining these lets a plane turn, climb, and descend smoothly.',
+      fact:'Fighter jets can pitch, roll, and yaw incredibly fast — some can complete a full barrel roll in under a second! Passenger jets move much more gently for comfort.',
+      draw:'controls2'},
+     {title:'Autopilot',badge:'Step 3 — The computer co-pilot',
+      body:'Modern planes have <strong>autopilot</strong> — a computer system that can fly the plane automatically, holding altitude, speed, and direction. Pilots still control takeoff and landing on most flights, and always monitor the systems closely.',
+      fact:'Some modern aircraft can even land themselves automatically in very low visibility using a system called "autoland" — but a pilot is always there ready to take over!',
+      draw:'controls3'},
+   ]},
+  {name:'Airports',
+   steps:[
+     {title:'The control tower',badge:'Step 1 — Air traffic control',
+      body:'<strong>Air traffic controllers</strong> work in the tall tower at airports, directing planes safely on the ground and in the sky nearby. They tell pilots which runway to use, when it\'s safe to take off, and guide planes in for landing.',
+      fact:'The world\'s busiest airport, Atlanta in the USA, handles a plane taking off or landing roughly every 30-40 seconds during busy periods!',
+      draw:'airport1'},
+     {title:'Runways',badge:'Step 2 — Built for direction',
+      body:'Runways are numbered based on their compass direction — Runway 27 points roughly west (270°)! Planes always take off and land into the wind whenever possible, because headwind helps create lift at a lower ground speed.',
+      fact:'The longest public runway in the world is at Qamdo Bamda Airport in China — at 5.5 km long, that\'s over 60 football pitches!',
+      draw:'airport2'},
+     {title:'Baggage and boarding',badge:'Step 3 — Behind the scenes',
+      body:'Before you board, your luggage travels through a huge sorting system, gets scanned for safety, and is loaded into the cargo hold below the passenger cabin. Ground crews also refuel the plane, check the engines, and clean the cabin — all in under an hour for some flights!',
+      fact:'A typical turnaround (landing to next takeoff) for a budget airline can be as fast as 25 minutes — that\'s less time than a school lunch break!',
+      draw:'airport3'},
+   ]},
+  {name:'Flight Crew',
+   steps:[
+     {title:'The pilots',badge:'Step 1 — Captain and First Officer',
+      body:'Every flight has at least two pilots: the <strong>Captain</strong> (the most senior pilot in charge) and the <strong>First Officer</strong> (the co-pilot). They take turns flying the plane and constantly check each other\'s work for safety.',
+      fact:'Airline pilots train for years and must pass regular check flights and medical exams throughout their entire career — even after decades of flying!',
+      draw:'crew1'},
+     {title:'Cabin crew',badge:'Step 2 — Safety first',
+      body:'Flight attendants are primarily trained for <strong>safety</strong> — to help evacuate the plane in an emergency, handle medical situations, and fight fires. Serving food and drinks is actually one of their smaller jobs!',
+      fact:'Cabin crew must be able to evacuate a full plane in just 90 seconds using only half the exits — this is tested and timed during training!',
+      draw:'crew2'},
+     {title:'Ground and support teams',badge:'Step 3 — The hidden team',
+      body:'For every flight, dozens of people work behind the scenes: <strong>air traffic controllers</strong>, <strong>engineers</strong> who maintain the aircraft, <strong>dispatchers</strong> who plan the route, and <strong>ground crew</strong> who load bags and fuel the plane.',
+      fact:'It takes around 200 different people to get a single commercial flight safely from one airport to another — pilots and cabin crew are just the part you can see!',
+      draw:'crew3'},
+   ]},
+];
+
+let flyTopicIdx=0, flyStepIdx=0;
+
+function setFlyTopic(idx,el){
+  flyTopicIdx=idx; flyStepIdx=0;
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  buildStepBar(); renderFly();
+}
+
+function buildStepBar(){
+  const t=FLY_TOPICS[flyTopicIdx];
+  const sb=document.getElementById('step-bar'); sb.innerHTML='';
+  t.steps.forEach((s,i)=>{
+    const p=document.createElement('button');
+    p.className='step-pill '+(i<flyStepIdx?'done':i===flyStepIdx?'active':'future');
+    p.textContent=(i+1)+'. '+s.title.split(' ')[0];
+    p.onclick=()=>{flyStepIdx=i;buildStepBar();renderFly();};
+    sb.appendChild(p);
+  });
+}
+
+function stepNav(dir){
+  const t=FLY_TOPICS[flyTopicIdx];
+  flyStepIdx=Math.max(0,Math.min(t.steps.length-1,flyStepIdx+dir));
+  buildStepBar(); renderFly();
+}
+
+function renderFly(){
+  const t=FLY_TOPICS[flyTopicIdx];
+  const s=t.steps[flyStepIdx];
+  document.getElementById('step-badge').textContent=s.badge;
+  document.getElementById('step-title').textContent=s.title;
+  document.getElementById('step-body').innerHTML=s.body;
+  document.getElementById('fact-box').innerHTML='<span>💡</span>'+s.fact;
+  document.getElementById('nav-prev').disabled=flyStepIdx===0;
+  document.getElementById('nav-next').disabled=flyStepIdx===t.steps.length-1;
+  drawFlyScene(s.draw);
+
+  if(typeof KLZ!=='undefined'){
+    const seen = KLZ._get('aviation_topics')||[];
+    if(!seen.includes(flyTopicIdx)){seen.push(flyTopicIdx);KLZ._set('aviation_topics',seen);}
+    if(seen.length>=5) KLZ.award('aviation_scholar');
+  }
+}
+
+// ── Canvas drawing for "How Flight Works" ──────────────────────────────────
+function txt(ctx,t,x,y,col,size){ctx.font=`${size||12}px Nunito,sans-serif`;ctx.fillStyle=col||'rgba(255,255,255,0.7)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x,y);}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);}
+function arrowHead(ctx,x,y,col,rot){rot=rot||0;ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle=col||'#38bdf8';ctx.beginPath();ctx.moveTo(0,-6);ctx.lineTo(5,5);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.restore();}
+
+function drawFlyScene(scene){
+  const canvas=document.getElementById('scene-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||700; canvas.height=220;
+  const W=canvas.width,H=220;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#06182e'; ctx.fillRect(0,0,W,H);
+
+  if(scene==='lift1'||scene==='lift2'){
+    // Cross-section wing shape
+    const cx=W/2,cy=H/2+10;
+    ctx.fillStyle='#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(cx-110,cy+10);
+    ctx.quadraticCurveTo(cx-40,cy-30,cx+100,cy-2);
+    ctx.quadraticCurveTo(cx-20,cy+14,cx-110,cy+10);
+    ctx.fill();
+    // Airflow lines - top (faster, curved)
+    ctx.strokeStyle='rgba(56,189,248,0.6)';ctx.lineWidth=2;
+    [cy-50,cy-65].forEach((y,i)=>{
+      ctx.beginPath();ctx.moveTo(20,y);ctx.quadraticCurveTo(cx,y-10,W-20,y);ctx.stroke();
+      arrowHead(ctx,W-26,y-1,'rgba(56,189,248,0.6)',Math.PI/2);
+    });
+    // Bottom airflow (slower, straight)
+    ctx.strokeStyle='rgba(255,255,255,0.3)';
+    [cy+35,cy+50].forEach(y=>{
+      ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(W-20,y);ctx.stroke();
+      arrowHead(ctx,W-26,y,'rgba(255,255,255,0.3)',Math.PI/2);
+    });
+    if(scene==='lift2'){
+      txt(ctx,'Faster ↑ (low pressure)',cx,cy-78,'#38bdf8',11);
+      txt(ctx,'Slower (high pressure)',cx,cy+65,'rgba(255,255,255,0.5)',11);
+    } else {
+      // Lift arrow
+      ctx.strokeStyle='#34d399';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(cx,cy-5);ctx.lineTo(cx,cy-80);ctx.stroke();
+      arrowHead(ctx,cx,cy-85,'#34d399',0);
+      txt(ctx,'LIFT ↑',cx+40,cy-60,'#34d399',13);
+    }
+  }
+  if(scene==='lift3'){
+    const cx=W/2,cy=H/2+20;
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(-0.15);
+    ctx.fillStyle='#38bdf8';
+    ctx.beginPath();ctx.moveTo(-110,10);ctx.quadraticCurveTo(-40,-30,100,-2);ctx.quadraticCurveTo(-20,14,-110,10);ctx.fill();
+    ctx.restore();
+    // Angle indicator
+    ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(cx-110,cy+10);ctx.lineTo(cx+100,cy+10);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(cx-90,cy+8,30,-0.15,0);ctx.stroke();
+    txt(ctx,'Angle of attack',cx,cy+60,'#fbbf24',12);
+    // Airflow
+    ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1.5;
+    [cy-40,cy-10].forEach(y=>{ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(W-20,y);ctx.stroke();});
+  }
+  if(scene==='thrust1'||scene==='thrust2'){
+    const cx=W*0.3,cy=H/2;
+    // Engine body
+    ctx.fillStyle='#94a3b8';roundRect(ctx,cx-50,cy-30,100,60,20);ctx.fill();
+    ctx.fillStyle='#1e293b';ctx.beginPath();ctx.arc(cx-50,cy,28,0,Math.PI*2);ctx.fill();
+    // Air in (front)
+    ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=2;
+    [-15,0,15].forEach(dy=>{ctx.beginPath();ctx.moveTo(cx-130,cy+dy);ctx.lineTo(cx-60,cy+dy);ctx.stroke();arrowHead(ctx,cx-65,cy+dy,'rgba(255,255,255,0.4)',Math.PI/2);});
+    txt(ctx,'Air in',cx-100,cy-50,'rgba(255,255,255,0.5)',11);
+    // Exhaust out (back) - fast/hot
+    ctx.strokeStyle='#f97316';ctx.lineWidth=3;
+    [-12,0,12].forEach(dy=>{ctx.beginPath();ctx.moveTo(cx+50,cy+dy);ctx.lineTo(cx+170,cy+dy);ctx.stroke();arrowHead(ctx,cx+175,cy+dy,'#f97316',Math.PI/2);});
+    txt(ctx,'Hot exhaust out (fast!)',cx+115,cy+45,'#f97316',11);
+    if(scene==='thrust2'){
+      ctx.strokeStyle='#34d399';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(cx-50,cy-70);ctx.lineTo(cx-100,cy-70);ctx.stroke();
+      arrowHead(ctx,cx-105,cy-70,'#34d399',-Math.PI/2);
+      txt(ctx,'Engine pushed forward',cx-75,cy-85,'#34d399',11);
+    }
+  }
+  if(scene==='thrust3'){
+    // Runway with plane accelerating
+    ctx.fillStyle='#1a2e1a';ctx.fillRect(0,H*0.75,W,H*0.25);
+    ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.setLineDash([14,10]);ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(0,H*0.875);ctx.lineTo(W,H*0.875);ctx.stroke();ctx.setLineDash([]);
+    // Speed markers
+    ['V1','Vr','V2'].forEach((label,i)=>{
+      const x=W*0.25+i*W*0.22;
+      ctx.fillStyle='#fbbf24';ctx.beginPath();ctx.arc(x,H*0.7,16,0,Math.PI*2);ctx.fill();
+      txt(ctx,label,x,H*0.7+1,'#1a1a1a',11);
+    });
+    txt(ctx,'Speed increases along the runway →',W/2,H*0.4,'rgba(255,255,255,0.5)',12);
+  }
+  if(scene==='controls1'){
+    // Top-down plane shape
+    const cx=W/2,cy=H/2;
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
+    // Fuselage
+    ctx.beginPath();ctx.ellipse(cx,cy,90,14,0,0,Math.PI*2);ctx.stroke();
+    // Wings
+    ctx.beginPath();ctx.moveTo(cx-10,cy);ctx.lineTo(cx-50,cy-70);ctx.lineTo(cx-30,cy-72);ctx.lineTo(cx+10,cy-6);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-10,cy);ctx.lineTo(cx-50,cy+70);ctx.lineTo(cx-30,cy+72);ctx.lineTo(cx+10,cy+6);ctx.closePath();ctx.stroke();
+    // Ailerons highlighted
+    ctx.fillStyle='rgba(56,189,248,0.4)';
+    ctx.beginPath();ctx.moveTo(cx-45,cy-62);ctx.lineTo(cx-55,cy-68);ctx.lineTo(cx-35,cy-70);ctx.lineTo(cx-28,cy-64);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(cx-45,cy+62);ctx.lineTo(cx-55,cy+68);ctx.lineTo(cx-35,cy+70);ctx.lineTo(cx-28,cy+64);ctx.closePath();ctx.fill();
+    txt(ctx,'Ailerons (roll)',cx-65,cy-90,'#38bdf8',11);
+    // Tail
+    ctx.beginPath();ctx.moveTo(cx-80,cy);ctx.lineTo(cx-100,cy-20);ctx.lineTo(cx-95,cy);ctx.closePath();ctx.stroke();
+    ctx.fillStyle='rgba(251,191,36,0.4)';ctx.beginPath();ctx.moveTo(cx-95,cy-2);ctx.lineTo(cx-100,cy-18);ctx.lineTo(cx-90,cy-15);ctx.lineTo(cx-88,cy-2);ctx.closePath();ctx.fill();
+    txt(ctx,'Rudder (yaw)',cx-115,cy-35,'#fbbf24',11);
+    // Elevator
+    ctx.beginPath();ctx.moveTo(cx-80,cy);ctx.lineTo(cx-95,cy-15);ctx.moveTo(cx-80,cy);ctx.lineTo(cx-95,cy+15);ctx.stroke();
+    ctx.fillStyle='rgba(244,114,182,0.4)';
+    ctx.beginPath();ctx.ellipse(cx-90,cy,12,18,0,0,Math.PI*2);ctx.fill();
+    txt(ctx,'Elevator (pitch)',cx-105,cy+38,'#f472b6',11);
+  }
+  if(scene==='controls2'){
+    // Three rotation axes shown as a simple plane with arrows
+    const cx=W/2,cy=H/2;
+    ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(cx,cy,70,10,0,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy-8);ctx.lineTo(cx-25,cy-50);ctx.lineTo(cx+25,cy-50);ctx.closePath();ctx.stroke();
+    // Pitch arrow (up/down at nose)
+    ctx.strokeStyle='#f472b6';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(cx+70,cy,20,Math.PI*1.3,Math.PI*0.7);ctx.stroke();
+    arrowHead(ctx,cx+70,cy-20,'#f472b6',Math.PI);
+    txt(ctx,'Pitch',cx+70,cy+38,'#f472b6',12);
+    // Roll arrow (around fuselage)
+    ctx.strokeStyle='#38bdf8';
+    ctx.beginPath();ctx.ellipse(cx,cy,70,18,0,0.2,Math.PI-0.2);ctx.stroke();
+    arrowHead(ctx,cx-68,cy+6,'#38bdf8',Math.PI*0.6);
+    txt(ctx,'Roll',cx,cy-75,'#38bdf8',12);
+    // Yaw arrow (top down rotation)
+    ctx.strokeStyle='#fbbf24';
+    ctx.beginPath();ctx.arc(cx-70,cy,22,Math.PI*0.3,Math.PI*1.6);ctx.stroke();
+    arrowHead(ctx,cx-70+22*Math.cos(Math.PI*0.3),cy+22*Math.sin(Math.PI*0.3),'#fbbf24',Math.PI*0.3+Math.PI/2);
+    txt(ctx,'Yaw',cx-70,cy+38,'#fbbf24',12);
+  }
+  if(scene==='controls3'){
+    // Cockpit-style autopilot panel
+    ctx.fillStyle='#0a1929';roundRect(ctx,W/2-130,H/2-60,260,120,16);ctx.fill();
+    ctx.strokeStyle='rgba(56,189,248,0.3)';ctx.lineWidth=1;roundRect(ctx,W/2-130,H/2-60,260,120,16);ctx.stroke();
+    txt(ctx,'AUTOPILOT',W/2,H/2-38,'#38bdf8',13);
+    ['ALT 36,000ft','SPD 480kt','HDG 270°'].forEach((t,i)=>{
+      txt(ctx,t,W/2,H/2-8+i*22,'#6ee7b7',12);
+    });
+    txt(ctx,'Computer flies — pilot monitors',W/2,H-20,'rgba(255,255,255,0.4)',11);
+  }
+  if(scene==='airport1'){
+    // Control tower
+    const cx=W*0.3;
+    ctx.fillStyle='#475569';ctx.fillRect(cx-8,H*0.4,16,H*0.5);
+    ctx.fillStyle='#1e293b';roundRect(ctx,cx-30,H*0.25,60,H*0.18,8);ctx.fill();
+    ctx.fillStyle='rgba(56,189,248,0.3)';ctx.fillRect(cx-25,H*0.27,50,H*0.1);
+    // Radio waves
+    ctx.strokeStyle='rgba(56,189,248,0.5)';ctx.lineWidth=2;
+    [25,40,55].forEach(r=>{ctx.beginPath();ctx.arc(cx,H*0.32,r,Math.PI*1.1,Math.PI*1.9);ctx.stroke();});
+    // Plane
+    txt(ctx,'✈️',W*0.72,H*0.4,'',40);
+    ctx.strokeStyle='rgba(56,189,248,0.4)';ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(cx+15,H*0.32);ctx.lineTo(W*0.68,H*0.4);ctx.stroke();ctx.setLineDash([]);
+    txt(ctx,'Control Tower',cx,H*0.92,'rgba(255,255,255,0.5)',11);
+  }
+  if(scene==='airport2'){
+    // Runway with compass numbers
+    ctx.fillStyle='#1a2e1a';ctx.fillRect(W*0.15,0,W*0.18,H);
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.setLineDash([12,10]);ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(W*0.24,0);ctx.lineTo(W*0.24,H);ctx.stroke();ctx.setLineDash([]);
+    txt(ctx,'27',W*0.24,H*0.15,'#fff',16);
+    txt(ctx,'(West)',W*0.24,H*0.27,'rgba(255,255,255,0.5)',10);
+    // Wind arrow
+    ctx.strokeStyle='#38bdf8';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(W*0.6,H*0.5);ctx.lineTo(W*0.4,H*0.5);ctx.stroke();
+    arrowHead(ctx,W*0.36,H*0.5,'#38bdf8',-Math.PI/2);
+    txt(ctx,'Wind direction →',W*0.6,H*0.4,'#38bdf8',11);
+    txt(ctx,'Planes land into the wind',W*0.65,H*0.65,'rgba(255,255,255,0.5)',11);
+  }
+  if(scene==='airport3'){
+    const items=[['🧳 Baggage',W*0.2],['⛽ Refuel',W*0.45],['🧹 Clean',W*0.65],['✅ Check',W*0.85]];
+    items.forEach(([label,x])=>{
+      ctx.fillStyle='rgba(56,189,248,0.1)';roundRect(ctx,x-45,H*0.35,90,H*0.3,12);ctx.fill();
+      ctx.strokeStyle='rgba(56,189,248,0.3)';ctx.lineWidth=1;roundRect(ctx,x-45,H*0.35,90,H*0.3,12);ctx.stroke();
+      txt(ctx,label,x,H*0.5,'#bae6fd',12);
+    });
+    txt(ctx,'All happens in under an hour!',W/2,H*0.85,'rgba(255,255,255,0.4)',11);
+  }
+  if(scene==='crew1'){
+    txt(ctx,'👨‍✈️',W*0.35,H*0.4,'',50);
+    txt(ctx,'Captain',W*0.35,H*0.68,'#38bdf8',13);
+    txt(ctx,'👩‍✈️',W*0.65,H*0.4,'',50);
+    txt(ctx,'First Officer',W*0.65,H*0.68,'#38bdf8',13);
+    ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(W/2,H*0.2);ctx.lineTo(W/2,H*0.8);ctx.stroke();ctx.setLineDash([]);
+    txt(ctx,'Two pilots check each other\'s work',W/2,H*0.9,'rgba(255,255,255,0.4)',11);
+  }
+  if(scene==='crew2'){
+    txt(ctx,'👨‍✈️',W*0.5,H*0.35,'',46);
+    txt(ctx,'Flight Attendant',W*0.5,H*0.6,'#34d399',13);
+    const tags=['Safety','First Aid','Evacuation','Fire Safety'];
+    tags.forEach((t,i)=>{
+      const x=W*0.2+i*W*0.2;
+      ctx.fillStyle='rgba(52,211,153,0.12)';roundRect(ctx,x-35,H*0.78,70,26,12);ctx.fill();
+      txt(ctx,t,x,H*0.78+13,'#6ee7b7',10);
+    });
+  }
+  if(scene==='crew3'){
+    const roles=[['🗼','ATC',W*0.18],['🔧','Engineer',W*0.39],['📋','Dispatcher',W*0.6],['🧳','Ground crew',W*0.82]];
+    roles.forEach(([icon,label,x])=>{
+      txt(ctx,icon,x,H*0.4,'',32);
+      txt(ctx,label,x,H*0.62,'#bae6fd',11);
+    });
+    txt(ctx,'~200 people behind every flight',W/2,H*0.85,'rgba(255,255,255,0.4)',11);
+  }
+}
+
+// Clouds drift
+const sky=document.getElementById('sky');
+['☁️','☁️','☁️'].forEach((c,i)=>{
+  const el=document.createElement('div');
+  el.className='cloud'; el.textContent=c;
+  el.style.top=(15+i*30)+'%';
+  el.style.animationDuration=(40+i*15)+'s';
+  el.style.animationDelay=(i*5)+'s';
+  sky.appendChild(el);
+});
+
+startGame();
+</script>
+</body>
+</html>
